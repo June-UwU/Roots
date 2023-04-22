@@ -1,10 +1,17 @@
 #include "types.hpp"
-#include "logger.hpp"
+#include "roots.hpp"
 
 s32 main(s32 argc, char** argv) 
 {
-    LOG_INFO("informed");
-    LOG_WARN("warned");
-    LOG_ERROR("error");
+    if(argc == 1)
+    {
+        runInteractive();
+    }
+    else 
+    {
+        runFiles(argv[1]);
+    }
     return 0;
 }
+
+
