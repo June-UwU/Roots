@@ -55,6 +55,7 @@ typedef enum TokenType
     RIGHT_BRACE,
     LEFT_PAREN,
     RIGHT_PAREN,
+    QUOTES,
     // END OF FILE
     END_OF_FILE,
     TOKENTYPE
@@ -82,3 +83,4 @@ class Token
         std::string file;
 };
 
+TokenType findKeywordOrIdentifier(const std::string string);

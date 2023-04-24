@@ -1,5 +1,14 @@
 #include "token.hpp"
 #include <sstream>
+#include <string.h>
+
+constexpr const u32 KEYWORD_COUNT = STRING;
+constexpr const char* KEYWORD_LIST[KEYWORD_COUNT]
+{
+    "i8","i16","i32","i64","u8","u16","u32","u64","f32",
+    "f64","class","true","false","&","|","this","super","return",
+    "null","for","if"
+};
 
 constexpr const char* TOKENTYPE_STRING[TOKENTYPE]
 {
@@ -9,7 +18,7 @@ constexpr const char* TOKENTYPE_STRING[TOKENTYPE]
     "SIGNED_INTEGER_NUMBER","FLOAT_NUMBER","BANG","BANG_EQUAL","EQUAL","EQUAL_EQUAL",
     "LESS_EQUAL","GREATER_EQUAL","LESS","GREATER","DOT","MINUS","PLUS","SLASH",
     "STAR","SEMI_COLON","COLON","COMMA","LEFT_BRACE","RIGHT_BRACE","LEFT_PAREN",
-    "RIGHT_PAREN"
+    "RIGHT_PAREN","QUOTES","END_OF_FILE"
 };
 
 Token::Token(TokenType type, std::string lexeme, Literal literal, u32 line,
@@ -66,4 +75,16 @@ std::string Token::toString() const
             tokenString << std::get<f32>(literal);
     }
     return tokenString.str();
+}
+
+TokenType findKeywordOrIdentifier(const std::string string)
+{
+    for(u32 i = 0; i < KEYWORD_COUNT; i++)
+    {
+        if(0 == strcmp(KEYWORD_LIST[i],string.c_str()))
+        {
+            return static_cast<TokenType>(i);
+        }
+    }
+    return IDENTIFIER;
 }
