@@ -1,5 +1,6 @@
 #include "logger.hpp"
 #include "lexer.hpp"
+#include "errorHandler.hpp"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -121,7 +122,7 @@ Error tokenize(std::vector<Token>& tokenList, std::string source, std::string fi
                     if(isEnd(source,currentIndex))
                     {
                         LOG_ERROR("unterminated string at line : %d",line);
-                        //reportError();
+                        reportError(ERROR_LEXER);
                     }
                     if('\n' == source[currentIndex])
                     {
@@ -259,6 +260,7 @@ Error tokenize(std::vector<Token>& tokenList, std::string source, std::string fi
                 {
                     LOG_ERROR("Error :  Unknown character %c while parsing.", 
                         source[currentIndex]);
+                    reportError(ERROR_LEXER);
                 }
                 break;
         }
