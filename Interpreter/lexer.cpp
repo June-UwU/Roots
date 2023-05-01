@@ -36,9 +36,10 @@ std::vector<Token> lexFile(const std::string filePath)
     {
         std::ostringstream errorStream; 
         errorStream << "failed to open file\n File : " << filePath;
+        LOG_ERROR("%s",errorStream.str().c_str());
         return tokenList;
     }
-    s32 character = getc(openFile);
+    s32 character = fgetc(openFile);
     while(EOF != character)
     {
         source += static_cast<char>(character);
@@ -46,7 +47,7 @@ std::vector<Token> lexFile(const std::string filePath)
     }
     LOG_INFO("%s" ,source.c_str());
     tokenize(tokenList,source,filePath);
-
+    
     return tokenList;
 }
 
@@ -253,7 +254,24 @@ Error tokenize(std::vector<Token>& tokenList, std::string source, std::string fi
                         }
                     }
                     string = source.substr(startIndex,currentIndex);
-                    literal = Literal(string);
+                    switch(token)
+                    {
+                        case SIGNED_INTEGER_NUMBER:
+                            {
+                                s32 intValue = std::stoi(string);
+                                literal = Literal(intValue);
+                            }break;
+                        case FLOAT_NUMBER:
+                            {
+                                f32 floatValue = std::stof(string);
+                                literal = Literal(floatValue);
+                            }break;
+                        case UNSIGNED_INTEGER_NUMBER:
+                            {
+                                u32 uintValue = std::stoul(string);
+                                literal = Literal(uintValue);
+                            }break;
+                    }
                     tokenList.emplace_back(token,string,literal,line,file);
                 }
                 else
@@ -266,7 +284,6 @@ Error tokenize(std::vector<Token>& tokenList, std::string source, std::string fi
         }
     }
     tokenList.emplace_back(END_OF_FILE," ",Literal(),line,file);
-    std::cout << tokenList.size();
     return NOERROR;
 }
 

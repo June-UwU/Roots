@@ -32,7 +32,7 @@ ExprType AbstractExpr::getType() const
     return type;
 }
 
-Expr::Expr(SharedRef<Literal> literalRef)
+Expr::Expr(SharedRef<LiteralExpr> literalRef)
     :literal{literalRef}
 {
     type = EXPR_LITERAL;

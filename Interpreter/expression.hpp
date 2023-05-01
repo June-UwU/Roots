@@ -7,7 +7,7 @@ class Expr;
 class Group;
 class UnaryExpr;
 class BinaryExpr;
-class LiteralExpir;
+class LiteralExpr;
 class BinaryOper;
 class UnaryOper;
 
@@ -49,13 +49,13 @@ class ExprVisitor
 class Expr : public AbstractExpr
 {
     public:
-        Expr(SharedRef<Literal> literalRef);
+        Expr(SharedRef<LiteralExpr> literalRef);
         Expr(SharedRef<Group> groupRef);
         Expr(SharedRef<UnaryExpr> unaryExprRef);
         Expr(SharedRef<BinaryExpr> binaryExprRef);
         void accept(ExprVisitor& visitorRef);
     private:
-        SharedRef<Literal> literal;
+        SharedRef<LiteralExpr> literal;
         SharedRef<Group> group;
         SharedRef<UnaryExpr> unaryExpr;
         SharedRef<BinaryExpr> binaryExpr;
@@ -96,7 +96,7 @@ class BinaryExpr : public AbstractExpr
 class LiteralExpr : public AbstractExpr 
 {
     public:
-        LiteralExpr(Token literalRef);
+        LiteralExpr(Token literal);
         void accept(ExprVisitor& visitor);
     private:
         Token literal;

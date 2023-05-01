@@ -1,6 +1,8 @@
 #include "roots.hpp"
 #include "lexer.hpp"
+#include "logger.hpp"
 #include <iostream>
+#include <cstring>
 
 constexpr const char* EXITCMD = "exit";
 
@@ -9,13 +11,13 @@ void printNewTokenInteractive(const std::vector<Token>& tokenList,u32 currentInd
 Error runInteractive()
 {
     std::cout << "Roots Interactive Shell\n";
-    std::string statement = "";
     std::vector<Token> tokenList;
     u32 tokenListIndex = 0;
     while(true)
     {
+        std::string statement;
         std::cout << ">>";
-        std::cin >> statement;
+        std::getline(std::cin,statement);
         if(EXITCMD == statement)
         {
             break;
@@ -24,7 +26,6 @@ Error runInteractive()
         run();
         printNewTokenInteractive(tokenList,tokenListIndex);
         tokenListIndex = tokenList.size() - 1;
-        std::cout << tokenListIndex;
     }
     return NOERROR;
 }
@@ -33,6 +34,11 @@ Error runFiles(const std::string filePath)
     std::vector<Token> tokenList = lexFile(filePath);
     
     run();
+
+    for(s32 i = 0; i < tokenList.size();i++)
+    {
+        LOG_INFO("%s",tokenList[i].toString().c_str());
+    }
 
     return NOERROR;
 }
@@ -45,6 +51,6 @@ void printNewTokenInteractive(const std::vector<Token>& tokenList, u32 currentIn
 {
     for(u32 i = currentIndex; i < tokenList.size() - 1; i++)
     {
-        std::cout << tokenList[i].toString().c_str() << "\n";
+        LOG_INFO("%s",tokenList[i].toString().c_str());
     }
 }

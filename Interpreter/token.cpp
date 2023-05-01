@@ -1,6 +1,7 @@
 #include "token.hpp"
 #include <sstream>
 #include <string.h>
+#include <iostream>
 
 constexpr const u32 KEYWORD_COUNT = STRING;
 constexpr const char* KEYWORD_LIST[KEYWORD_COUNT]
@@ -60,6 +61,7 @@ std::string Token::toString() const
 {
     std::ostringstream tokenString;
     tokenString << TOKENTYPE_STRING[type] << "\t" << lexeme << "\t";
+    try {
     switch(type)
     {
         case STRING:
@@ -74,6 +76,11 @@ std::string Token::toString() const
         case FLOAT_NUMBER:
             tokenString << std::get<f32>(literal);
     }
+    }catch(std::bad_variant_access access)
+                           {
+        std::cout <<"\n" << access.what();
+        return "";
+                           }
     return tokenString.str();
 }
 

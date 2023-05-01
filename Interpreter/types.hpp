@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <stdio.h>
 #include <string>
+#include <memory>
 
 // SIGNED TYPES
 typedef int8_t      s8;
@@ -18,6 +19,12 @@ typedef uint64_t    u64;
 // FLOATING TYPES
 typedef float       f32;
 typedef double      f64;
+
+template <typename T>
+using Ref = std::unique_ptr<T>;
+
+template <typename T>
+using SharedRef = std::shared_ptr<T>;
 
 typedef enum ErrorCode
 {
