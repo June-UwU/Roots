@@ -1,152 +1,167 @@
 #include "parser.hpp"
 #include "logger.hpp"
 #include <memory>
+// TODO : clean up here and expression
 
 // helpers
 bool isEnd(std::vector<Token>& tokenList, u32& index);
 
 // Grammar rules for the RD parser.
-SharedRef<Expr> expression(std::vector<Token>& tokenList,u32& index);
-SharedRef<Expr> equality(std::vector<Token>& tokenList, u32& index);
-SharedRef<Expr> comparsion(std::vector<Token>& tokenList, u32& index);
-SharedRef<Expr> term(std::vector<Token>& tokenList, u32& index);
-SharedRef<Expr> factor(std::vector<Token>& tokenList, u32& index);
-SharedRef<Expr> unary(std::vector<Token>& tokenList, u32& index);
-SharedRef<Expr> primary(std::vector<Token>& tokenList, u32& index);
+AstNode* expression(std::vector<Token>& tokenList,u32& index);
+AstNode* equality(std::vector<Token>& tokenList, u32& index);
+AstNode* comparsion(std::vector<Token>& tokenList, u32& index);
+AstNode* term(std::vector<Token>& tokenList, u32& index);
+AstNode* factor(std::vector<Token>& tokenList, u32& index);
+AstNode* unary(std::vector<Token>& tokenList, u32& index);
+AstNode* primary(std::vector<Token>& tokenList, u32& index);
 
-SharedRef<Expr> parse(std::vector<Token>& tokenList)
+AstNode* parse(std::vector<Token>& tokenList)
 {
     u32 currentIndex = 0;
     return expression(tokenList, currentIndex);
 }
 
-SharedRef<Expr> expression(std::vector<Token>& tokenList, u32& index)
+AstNode* expression(std::vector<Token>& tokenList, u32& index)
 {
     return equality(tokenList,index);
 }
 
-SharedRef<Expr> equality(std::vector<Token>& tokenList, u32& index)
+AstNode* equality(std::vector<Token>& tokenList, u32& index)
 {
-    SharedRef<Expr> lhs = comparsion(tokenList,index);
+    AstNode* lhs = comparsion(tokenList,index);
     bool isOper = true;
-    while(isOper || isEnd(tokenList,index))
+    while(isOper && !isEnd(tokenList,index))
         {
-            SharedRef<BinaryOper> oper;
+            AstNode* oper;
             switch(tokenList[index].getTokenType())
             {
                 case EQUAL_EQUAL:
                 case BANG_EQUAL:
-                    oper = std::make_shared<BinaryOper>(tokenList[index]);
+                {   
+                    BinaryOper* binaryOper = new BinaryOper(tokenList[index]);
+                    oper = new AstNode(binaryOper);
                     index++;
-                    break;
+                }break;
                 default:
                 // TODO : might need to eat up the semi colons here; or does it have any other meaning
                     isOper = false;
                     continue;
             }
-            SharedRef<Expr> rhs = comparsion(tokenList,index);
-            SharedRef<BinaryExpr> expr = std::make_shared<BinaryExpr>(lhs,oper,rhs);
-            lhs = std::make_shared<Expr>(expr);
+            AstNode* rhs = comparsion(tokenList,index);
+            BinaryExpr* expr = new BinaryExpr(lhs,oper,rhs);
+            lhs = new AstNode(expr);
         }
     return lhs;
 }
 
-SharedRef<Expr> comparsion(std::vector<Token>& tokenList, u32& index)
+AstNode* comparsion(std::vector<Token>& tokenList, u32& index)
 {
-    SharedRef<Expr> lhs = term(tokenList,index);
+    AstNode* lhs = term(tokenList,index);
     bool isOper = true;
-    while(isOper || !isEnd(tokenList,index))
+    while(isOper && !isEnd(tokenList,index))
         {
-            SharedRef<BinaryOper> oper;
+            AstNode* oper;
             switch(tokenList[index].getTokenType())
                 {
                     case GREATER_EQUAL:
                     case LESS_EQUAL:
                     case GREATER:
                     case LESS:
-                        oper = std::make_shared<BinaryOper>(tokenList[index]);
+                    {
+                        BinaryOper* bOper = new BinaryOper(tokenList[index]);
+                        oper = new AstNode(bOper);
                         index++;
-                        break;
+                    }break;
                     default:
                         isOper = false;
                         continue;
                 }
-            SharedRef<Expr> rhs = term(tokenList,index);
-            SharedRef<BinaryExpr> expr = std::make_shared<BinaryExpr>(lhs,oper,rhs);
-            lhs = std::make_shared<Expr>(expr);
+            AstNode* rhs = term(tokenList,index);
+            BinaryExpr* bExpr = new BinaryExpr(lhs,oper,rhs); 
+            lhs = new AstNode(bExpr);
         }
     return lhs;
 }
 
-SharedRef<Expr> term(std::vector<Token>& tokenList,u32& index)
+AstNode* term(std::vector<Token>& tokenList,u32& index)
 {
-    SharedRef<Expr> lhs = factor(tokenList,index);
+    AstNode* lhs = factor(tokenList,index);
     bool isOper = true;
-    while(isOper || !isEnd(tokenList,index))
+    while(isOper && !isEnd(tokenList,index))
         {
-            SharedRef<BinaryOper> oper;
+            AstNode* oper;
             switch(tokenList[index].getTokenType())
                 {
                     case MINUS:
                     case PLUS:
-                        oper = std::make_shared<BinaryOper>(tokenList[index]);
+                    {
+                        BinaryOper* bOper = new BinaryOper(tokenList[index]);
+                        oper =new AstNode(bOper);
                         index++;
-                        break;
+                    }break;
                     default:
                         isOper = false;
                         continue;
                 }
-            SharedRef<Expr> rhs = factor(tokenList,index);
-            SharedRef<BinaryExpr> expr = std::make_shared<BinaryExpr>(lhs,oper,rhs);
-            lhs = std::make_shared<Expr>(expr);
+            AstNode* rhs = factor(tokenList,index);
+            BinaryExpr* expr = new BinaryExpr(lhs,oper,rhs);
+            lhs = new AstNode(expr);
         }
     return lhs;
 }
 
-SharedRef<Expr> factor(std::vector<Token>& tokenList, u32& index)
+AstNode* factor(std::vector<Token>& tokenList, u32& index)
 {
-    SharedRef<Expr> lhs = unary(tokenList, index);
+    AstNode* lhs = unary(tokenList, index);
     bool isOper = true;
-    while(isOper || !isEnd(tokenList,index))
+    while(isOper && !isEnd(tokenList,index))
         {
-            SharedRef<BinaryOper> oper;
+            AstNode* oper;
             switch(tokenList[index].getTokenType())
                 {
                     case SLASH:
                     case STAR:
-                        oper = std::make_shared<BinaryOper>(tokenList[index]);
+                    {
+                        BinaryOper* bOper = new BinaryOper(tokenList[index]);
+                        oper = new AstNode(bOper);
                         index++;
-                        break;
+                    }break;
                     default:
                         isOper = false;
                         continue;
                 }
-            SharedRef<Expr> rhs = unary(tokenList,index);
-            SharedRef<BinaryExpr> expr = std::make_shared<BinaryExpr>(lhs,oper,rhs);
-            lhs = std::make_shared<Expr>(expr);
+            AstNode* rhs = unary(tokenList,index);
+            BinaryExpr* expr = new BinaryExpr(lhs,oper,rhs);
+            lhs = new AstNode(expr);
         }
     return lhs;
 }
 
-SharedRef<Expr> unary(std::vector<Token>& tokenList, u32& index)
+AstNode* unary(std::vector<Token>& tokenList, u32& index)
 {
-    SharedRef<Expr> expr;
-    SharedRef<UnaryOper> oper;
+    AstNode* expr = nullptr;
+    AstNode* oper = nullptr;
     switch(tokenList[index].getTokenType())
         {
             case MINUS:
             case BANG:
-                oper = std::make_shared<UnaryOper>(tokenList[index]);
+            {
+                UnaryOper* uOper = new UnaryOper(tokenList[index]);
+                oper = new AstNode(uOper);
                 index++;
                 expr = unary(tokenList,index);
+            }break;
             default:
                 return primary(tokenList,index);
         }
+    UnaryExpr* uExpr = new UnaryExpr(oper,expr);
+    expr = new AstNode(uExpr);
+    return expr;
 }
 
-SharedRef<Expr> primary(std::vector<Token>& tokenList, u32& index)
+AstNode* primary(std::vector<Token>& tokenList, u32& index)
 {
-    SharedRef<Expr> expr;
+    AstNode* expr = nullptr;
 
     switch(tokenList[index].getTokenType())
         {
@@ -155,11 +170,11 @@ SharedRef<Expr> primary(std::vector<Token>& tokenList, u32& index)
             case STRING:
             case SIGNED_INTEGER_NUMBER:
             case UNSIGNED_INTEGER_NUMBER:
-                {
-                    SharedRef<LiteralExpr> literal = std::make_shared<LiteralExpr>(tokenList[index]);
-                    expr = std::make_shared<Expr>(literal);
-                    index++;
-                }
+            {
+                LiteralExpr* lExpr = new LiteralExpr(tokenList[index]);
+                expr = new AstNode(lExpr);
+                index++;
+            }break;
             default:
                 // TODO : error handling and other good stuff
                 LOG_ERROR("primary grammar default case - possible error");

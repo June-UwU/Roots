@@ -1,8 +1,9 @@
 #pragma once
 #include "types.hpp"
 #include "token.hpp"
+#include "Ast.hpp"
 #include "expression.hpp"
 #include <vector>
 
 
-SharedRef<Expr> parse(std::vector<Token>& tokenList);
+AstNode* parse(std::vector<Token>& tokenList);

@@ -1,6 +1,8 @@
 #include "roots.hpp"
 #include "lexer.hpp"
+#include "parser.hpp"
 #include "logger.hpp"
+#include "astPrettyPrinter.hpp"
 #include <iostream>
 #include <cstring>
 
@@ -13,6 +15,7 @@ Error runInteractive()
     std::cout << "Roots Interactive Shell\n";
     std::vector<Token> tokenList;
     u32 tokenListIndex = 0;
+    AstNode* ast = nullptr;
     while(true)
     {
         std::string statement;
@@ -22,11 +25,15 @@ Error runInteractive()
         {
             break;
         }
+        delete ast;
         lexInteractive(tokenList,statement);
         run();
-        printNewTokenInteractive(tokenList,tokenListIndex);
-        tokenListIndex = tokenList.size() - 1;
+        tokenList.pop_back();
+        ast = parse(tokenList);
+        LOG_INFO("parsing done");
+        astPrettyPrint(ast);    
     }
+    delete ast;
     return NOERROR;
 }
 Error runFiles(const std::string filePath)

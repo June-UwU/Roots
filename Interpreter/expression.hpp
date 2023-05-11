@@ -1,6 +1,7 @@
 #pragma once
 #include "types.hpp"
 #include "token.hpp"
+#include "Ast.hpp"
 
 class ExprVisitor;
 class Expr;
@@ -28,6 +29,7 @@ typedef enum ExprType
 }ExprType;
 
 bool isValidOper(Token token, ExprType type);
+const char* getExprTypeString(ExprType type);
 
 class AbstractExpr
 {
@@ -49,56 +51,55 @@ class ExprVisitor
 class Expr : public AbstractExpr
 {
     public:
-        Expr(SharedRef<LiteralExpr> literalRef);
-        Expr(SharedRef<Group> groupRef);
-        Expr(SharedRef<UnaryExpr> unaryExprRef);
-        Expr(SharedRef<BinaryExpr> binaryExprRef);
+        Expr(AstNode* sExpr, ExprType type);
+        ~Expr();
         void accept(ExprVisitor& visitorRef);
-    private:
-        SharedRef<LiteralExpr> literal;
-        SharedRef<Group> group;
-        SharedRef<UnaryExpr> unaryExpr;
-        SharedRef<BinaryExpr> binaryExpr;
+    public:
+        AstNode* expr;
 };
 
 class Group : public AbstractExpr
 {
     public:
-        Group(Token leftRef, SharedRef<Expr> exprRef, Token rightRef);
+        Group(Token leftRef, AstNode* exprRef, Token rightRef);
+        ~Group();
         void accept(ExprVisitor& visitor);
-    private:
+    public:
         Token leftToken;
-        SharedRef<Expr> expr;
+        AstNode* expr;
         Token rightToken;
 };
 
 class UnaryExpr : public AbstractExpr
 {
     public:
-        UnaryExpr(SharedRef<UnaryOper> opRef, SharedRef<Expr> exprRef);
+        UnaryExpr(AstNode* pOper, AstNode* pExpr);
+        ~UnaryExpr();
         void accept(ExprVisitor& visitor);
-    private:
-        SharedRef<UnaryOper> unaryOper;
-        SharedRef<Expr> expr;
+    public:
+        AstNode* unaryOper;
+        AstNode* expr;
 };
 
 class BinaryExpr : public AbstractExpr
 {
     public:
-        BinaryExpr(SharedRef<Expr> lhsExprRef, SharedRef<BinaryOper> operRef, SharedRef<Expr> rhsExprRef);
+        BinaryExpr(AstNode* lhsExpr, AstNode* pOper, AstNode* rhsExpr);
+        ~BinaryExpr();
         void accept(ExprVisitor& visitor);
-    private:
-        SharedRef<Expr> leftExpr;
-        SharedRef<BinaryOper> binaryOper;
-        SharedRef<Expr> rightExpr;
+    public:
+        AstNode* leftExpr;
+        AstNode* binaryOper;
+        AstNode* rightExpr;
 };
 
 class LiteralExpr : public AbstractExpr 
 {
     public:
-        LiteralExpr(Token literal);
+        LiteralExpr(Token literal); 
         void accept(ExprVisitor& visitor);
-    private:
+        Token getToken() const;
+    public:
         Token literal;
 };
 
@@ -107,7 +108,8 @@ class UnaryOper : public AbstractExpr
     public:
         UnaryOper(Token token);
         void accept(ExprVisitor& visitor);
-    private:
+        Token getToken() const;
+    public:
         Token oper;
 };
 
@@ -116,6 +118,7 @@ class BinaryOper : public AbstractExpr
     public:
         BinaryOper(Token oper);
         void accept(ExprVisitor& visitor);
-    private:
+        Token getToken() const;
+    public:
         Token oper;
 };

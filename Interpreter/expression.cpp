@@ -32,28 +32,15 @@ ExprType AbstractExpr::getType() const
     return type;
 }
 
-Expr::Expr(SharedRef<LiteralExpr> literalRef)
-    :literal{literalRef}
+Expr::Expr(AstNode* sExpr, ExprType exprType)
 {
-    type = EXPR_LITERAL;
+    expr = sExpr;
+    type = exprType;
 }
 
-Expr::Expr(SharedRef<Group> groupRef)
-    :group{groupRef}
+Expr::~Expr()
 {
-    type = EXPR_GROUP;
-}
-
-Expr::Expr(SharedRef<UnaryExpr> unary)
-    :unaryExpr{unary}
-{
-    type = EXPR_UNARY;
-}
-
-Expr::Expr(SharedRef<BinaryExpr> binary)
-    :binaryExpr{binary}
-{
-    type = EXPR_BINARY;
+    delete expr;
 }
 
 void Expr::accept(ExprVisitor& visitor)
@@ -61,7 +48,7 @@ void Expr::accept(ExprVisitor& visitor)
     visitor.visit(this);
 }
 
-Group::Group(Token lhs, SharedRef<Expr> midExpr, Token rhs)
+Group::Group(Token lhs, AstNode* midExpr, Token rhs)
     :leftToken{lhs}
     ,expr{midExpr}
     ,rightToken{rhs}
@@ -69,16 +56,26 @@ Group::Group(Token lhs, SharedRef<Expr> midExpr, Token rhs)
     type = GROUP;
 }
 
+Group::~Group()
+{
+    delete expr;
+}
+
 void Group::accept(ExprVisitor& visitor)
 {
     visitor.visit(this);
 }
 
-UnaryExpr::UnaryExpr(SharedRef<UnaryOper> oper, SharedRef<Expr> exprRef)
+UnaryExpr::UnaryExpr(AstNode* oper, AstNode* exprRef)
     :unaryOper{oper}
     ,expr{exprRef}
 {
     type = UNARY_EXPR;
+}
+
+UnaryExpr::~UnaryExpr()
+{
+    delete expr;
 }
 
 void UnaryExpr::accept(ExprVisitor& visitor)
@@ -86,11 +83,18 @@ void UnaryExpr::accept(ExprVisitor& visitor)
     visitor.visit(this);
 }
 
-BinaryExpr::BinaryExpr(SharedRef<Expr> lhs, SharedRef<BinaryOper> oper, SharedRef<Expr> rhs)
+BinaryExpr::BinaryExpr(AstNode* lhs, AstNode* oper, AstNode* rhs)
     :leftExpr{lhs}
+    ,binaryOper{oper}
     ,rightExpr{rhs}
 {
     type = BINARY_EXPR;
+}
+
+BinaryExpr::~BinaryExpr()
+{
+    delete leftExpr;
+    delete rightExpr;
 }
 
 void BinaryExpr::accept(ExprVisitor& visitor)
@@ -109,6 +113,11 @@ void LiteralExpr::accept(ExprVisitor& visitor)
     visitor.visit(this);
 }
 
+Token LiteralExpr::getToken() const
+{
+    return literal;
+}
+
 UnaryOper::UnaryOper(Token operToken)
     :oper{operToken}
 {
@@ -120,6 +129,11 @@ void UnaryOper::accept(ExprVisitor& visitor)
     visitor.visit(this);
 }
 
+Token UnaryOper::getToken() const
+{
+    return oper;
+}
+
 BinaryOper::BinaryOper(Token operToken)
     :oper{operToken}
 {
@@ -129,6 +143,11 @@ BinaryOper::BinaryOper(Token operToken)
 void BinaryOper::accept(ExprVisitor& visitor)
 {
     visitor.visit(this);
+}
+
+Token BinaryOper::getToken() const
+{
+    return oper;
 }
 
 bool isValidExpr(const Token token,const ExprType type)
@@ -169,3 +188,10 @@ bool isValidExpr(const Token token,const ExprType type)
 
         }
 }
+
+
+const char* getExprTypeString(ExprType type)
+{
+    return EXPRTYPE_STR[type];
+}
+

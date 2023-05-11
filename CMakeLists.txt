@@ -30,3 +30,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message("Cmake C++ standard : ${CMAKE_CXX_STANDARD}")
 
 add_subdirectory("Interpreter")
+add_custom_command(OUTPUT generating ctags database...
+    COMMAND ctags -R)
