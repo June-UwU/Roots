@@ -175,6 +175,16 @@ AstNode* primary(std::vector<Token>& tokenList, u32& index)
                 expr = new AstNode(lExpr);
                 index++;
             }break;
+            case LEFT_PAREN:
+            {
+                Token lParen = tokenList[index];
+                index++;
+                AstNode* gExpr = expression(tokenList,index);
+                Token rParen = tokenList[index];
+                index++;
+                Group* group = new Group(lParen,gExpr,rParen);
+                expr = new AstNode(group);
+            }break;
             default:
                 // TODO : error handling and other good stuff
                 LOG_ERROR("primary grammar default case - possible error");

@@ -16,7 +16,11 @@ void levelPrint(s32 level)
 {
     for(int i = level; i > 0; i--)
     {
-        std::cout << "\t|";
+        std::cout << "\t";
+        if((i - 1) == 0)
+        {
+            std::cout << "|";
+        }
     }
     std::cout << "-";
 }
@@ -30,17 +34,17 @@ void printNode(AbstractExpr* node, s32 level)
         case LITERAL:
         {
             LiteralExpr* literal = reinterpret_cast<LiteralExpr*>(node);
-            std::cout << literal->getToken().toString();
+            std::cout << " " << literal->getToken().toString();
         }break;
         case BINARY_OPER:
         {
             BinaryOper* bOper = reinterpret_cast<BinaryOper*>(node);
-            std::cout << bOper->getToken().toString();
+            std::cout << " " << bOper->getToken().toString();
         }break;
         case UNARY_OPER:
         {
             UnaryOper* uOper = reinterpret_cast<UnaryOper*>(node);
-            std::cout << uOper->getToken().toString();
+            std::cout << " " << uOper->getToken().toString();
         }break;
         default:
             break;
