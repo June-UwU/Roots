@@ -11,18 +11,19 @@ file(GLOB_RECURSE tooling_src ${CMAKE_CURRENT_SOURCE_DIR}/tools/*.cpp)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${tooling_inc})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${tooling_src})
 
-file(GLOB_RECURSE generics_inc ${CMAKE_CURRENT_SOURCE_DIR}/generics/*.hpp)
-file(GLOB_RECURSE generics_src ${CMAKE_CURRENT_SOURCE_DIR}/generics/*.src)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${generics_inc})
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${generics_src})
+
+file(GLOB_RECURSE run_time_inc ${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.hpp)
+file(GLOB_RECURSE run_time_src ${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.cpp)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${run_time_inc})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${run_time_src})
 
 add_executable( ${PROJECT_NAME}
     ${common_inc}
     ${common_src}
     ${tooling_inc}
     ${tooling_src}
-    ${generics_inc}
-    ${generics_src}
+    ${run_time_inc}
+    ${run_time_src}
     )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

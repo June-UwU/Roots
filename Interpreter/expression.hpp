@@ -1,8 +1,8 @@
 #pragma once
 #include "types.hpp"
 #include "token.hpp"
-#include "Ast.hpp"
 
+class AbstractExpr;
 class ExprVisitor;
 class Expr;
 class Group;
@@ -11,6 +11,9 @@ class BinaryExpr;
 class LiteralExpr;
 class BinaryOper;
 class UnaryOper;
+
+using Ast = AbstractExpr;
+using AstNode = AbstractExpr;
 
 typedef enum ExprType
 {
@@ -35,17 +38,8 @@ class AbstractExpr
 {
     public:
         ExprType getType() const;
-        virtual void accept(ExprVisitor& visitor) = 0;
     protected:
         ExprType type;
-};
-
-class ExprVisitor
-{
-    public:
-        ExprVisitor() = default;
-        void visit(AbstractExpr* expr);
-    private:
 };
 
 class Expr : public AbstractExpr
@@ -53,7 +47,6 @@ class Expr : public AbstractExpr
     public:
         Expr(AstNode* sExpr, ExprType type);
         ~Expr();
-        void accept(ExprVisitor& visitorRef);
     public:
         AstNode* expr;
 };
@@ -63,7 +56,6 @@ class Group : public AbstractExpr
     public:
         Group(Token leftRef, AstNode* exprRef, Token rightRef);
         ~Group();
-        void accept(ExprVisitor& visitor);
     public:
         Token leftToken;
         AstNode* expr;
@@ -75,7 +67,6 @@ class UnaryExpr : public AbstractExpr
     public:
         UnaryExpr(AstNode* pOper, AstNode* pExpr);
         ~UnaryExpr();
-        void accept(ExprVisitor& visitor);
     public:
         AstNode* unaryOper;
         AstNode* expr;
@@ -86,7 +77,6 @@ class BinaryExpr : public AbstractExpr
     public:
         BinaryExpr(AstNode* lhsExpr, AstNode* pOper, AstNode* rhsExpr);
         ~BinaryExpr();
-        void accept(ExprVisitor& visitor);
     public:
         AstNode* leftExpr;
         AstNode* binaryOper;
@@ -97,7 +87,6 @@ class LiteralExpr : public AbstractExpr
 {
     public:
         LiteralExpr(Token literal); 
-        void accept(ExprVisitor& visitor);
         Token getToken() const;
     public:
         Token literal;
@@ -107,7 +96,6 @@ class UnaryOper : public AbstractExpr
 {
     public:
         UnaryOper(Token token);
-        void accept(ExprVisitor& visitor);
         Token getToken() const;
     public:
         Token oper;
@@ -117,8 +105,9 @@ class BinaryOper : public AbstractExpr
 {
     public:
         BinaryOper(Token oper);
-        void accept(ExprVisitor& visitor);
         Token getToken() const;
     public:
         Token oper;
 };
+
+

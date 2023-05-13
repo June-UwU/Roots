@@ -3,11 +3,11 @@
 #include <deque>
 
 void levelPrint(s32 level);
-void printNode(AbstractExpr* node);
+void printNode(AstNode* node);
 void prettyPrint(AstNode* expr);
 bool isEndNode(AstNode* node);
 
-void astPrettyPrint(AstNode* root)
+void astPrettyPrint(Ast* root)
 {
     prettyPrint(root);
 }
@@ -25,7 +25,7 @@ void levelPrint(s32 level)
     std::cout << "-";
 }
 
-void printNode(AbstractExpr* node, s32 level)
+void printNode(AstNode* node, s32 level)
 {
     levelPrint(level);
     std::cout << "[" << getExprTypeString(node->getType());
@@ -60,7 +60,7 @@ void prettyPrint(AstNode* expr)
     s32 level = 0;
     while(!queue.empty())
     {
-        AbstractExpr* aExpr = reinterpret_cast<AbstractExpr*>(queue.front()->get());
+        AstNode* aExpr = reinterpret_cast<AstNode*>(queue.front());
         queue.pop_front();
         printNode(aExpr,level);
         switch(aExpr->getType())
@@ -100,8 +100,7 @@ void prettyPrint(AstNode* expr)
 
 bool isEndNode(AstNode* node)
 {
-    AbstractExpr* aExpr = reinterpret_cast<AbstractExpr*>(node->get());
-    switch(aExpr->getType())
+    switch(node->getType())
     {
         case LITERAL:
         case BINARY_OPER:

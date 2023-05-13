@@ -7,26 +7,6 @@ constexpr const char* EXPRTYPE_STR[EXPRTYPE]
     "EXPR_GROUP","EXPR_UNARY","EXPR_BINARY"
 };
 
-void ExprVisitor::visit(AbstractExpr* expr)
-{
-    switch(expr->getType())
-        {
-            case EXPR:
-            case GROUP:
-            case UNARY_EXPR:
-            case BINARY_EXPR:
-            case LITERAL:
-            case BINARY_OPER:
-            case UNARY_OPER:
-            case EXPR_LITERAL:
-            case EXPR_GROUP:
-            case EXPR_UNARY:
-            case EXPR_BINARY:
-            default:
-            break;
-        }
-}
-
 ExprType AbstractExpr::getType() const
 {
     return type;
@@ -43,11 +23,6 @@ Expr::~Expr()
     delete expr;
 }
 
-void Expr::accept(ExprVisitor& visitor)
-{
-    visitor.visit(this);
-}
-
 Group::Group(Token lhs, AstNode* midExpr, Token rhs)
     :leftToken{lhs}
     ,expr{midExpr}
@@ -61,11 +36,6 @@ Group::~Group()
     delete expr;
 }
 
-void Group::accept(ExprVisitor& visitor)
-{
-    visitor.visit(this);
-}
-
 UnaryExpr::UnaryExpr(AstNode* oper, AstNode* exprRef)
     :unaryOper{oper}
     ,expr{exprRef}
@@ -76,11 +46,6 @@ UnaryExpr::UnaryExpr(AstNode* oper, AstNode* exprRef)
 UnaryExpr::~UnaryExpr()
 {
     delete expr;
-}
-
-void UnaryExpr::accept(ExprVisitor& visitor)
-{
-    visitor.visit(this);
 }
 
 BinaryExpr::BinaryExpr(AstNode* lhs, AstNode* oper, AstNode* rhs)
@@ -97,20 +62,10 @@ BinaryExpr::~BinaryExpr()
     delete rightExpr;
 }
 
-void BinaryExpr::accept(ExprVisitor& visitor)
-{
-    visitor.visit(this);
-}
-
 LiteralExpr::LiteralExpr(Token literalRef)
     :literal{literalRef}
 {
     type = LITERAL;
-}
-
-void LiteralExpr::accept(ExprVisitor& visitor)
-{
-    visitor.visit(this);
 }
 
 Token LiteralExpr::getToken() const
@@ -124,11 +79,6 @@ UnaryOper::UnaryOper(Token operToken)
     type = UNARY_OPER;
 }
 
-void UnaryOper::accept(ExprVisitor& visitor)
-{
-    visitor.visit(this);
-}
-
 Token UnaryOper::getToken() const
 {
     return oper;
@@ -138,11 +88,6 @@ BinaryOper::BinaryOper(Token operToken)
     :oper{operToken}
 {
     type = BINARY_OPER;
-}
-
-void BinaryOper::accept(ExprVisitor& visitor)
-{
-    visitor.visit(this);
 }
 
 Token BinaryOper::getToken() const

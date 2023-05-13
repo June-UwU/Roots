@@ -38,8 +38,7 @@ AstNode* equality(std::vector<Token>& tokenList, u32& index)
                 case EQUAL_EQUAL:
                 case BANG_EQUAL:
                 {   
-                    BinaryOper* binaryOper = new BinaryOper(tokenList[index]);
-                    oper = new AstNode(binaryOper);
+                    oper = new BinaryOper(tokenList[index]);
                     index++;
                 }break;
                 default:
@@ -48,8 +47,7 @@ AstNode* equality(std::vector<Token>& tokenList, u32& index)
                     continue;
             }
             AstNode* rhs = comparsion(tokenList,index);
-            BinaryExpr* expr = new BinaryExpr(lhs,oper,rhs);
-            lhs = new AstNode(expr);
+            lhs = new BinaryExpr(lhs,oper,rhs);
         }
     return lhs;
 }
@@ -68,8 +66,7 @@ AstNode* comparsion(std::vector<Token>& tokenList, u32& index)
                     case GREATER:
                     case LESS:
                     {
-                        BinaryOper* bOper = new BinaryOper(tokenList[index]);
-                        oper = new AstNode(bOper);
+                        oper = new BinaryOper(tokenList[index]);
                         index++;
                     }break;
                     default:
@@ -77,8 +74,7 @@ AstNode* comparsion(std::vector<Token>& tokenList, u32& index)
                         continue;
                 }
             AstNode* rhs = term(tokenList,index);
-            BinaryExpr* bExpr = new BinaryExpr(lhs,oper,rhs); 
-            lhs = new AstNode(bExpr);
+            lhs = new BinaryExpr(lhs,oper,rhs); 
         }
     return lhs;
 }
@@ -95,8 +91,7 @@ AstNode* term(std::vector<Token>& tokenList,u32& index)
                     case MINUS:
                     case PLUS:
                     {
-                        BinaryOper* bOper = new BinaryOper(tokenList[index]);
-                        oper =new AstNode(bOper);
+                        oper = new BinaryOper(tokenList[index]);
                         index++;
                     }break;
                     default:
@@ -104,8 +99,7 @@ AstNode* term(std::vector<Token>& tokenList,u32& index)
                         continue;
                 }
             AstNode* rhs = factor(tokenList,index);
-            BinaryExpr* expr = new BinaryExpr(lhs,oper,rhs);
-            lhs = new AstNode(expr);
+            lhs = new BinaryExpr(lhs,oper,rhs);
         }
     return lhs;
 }
@@ -122,8 +116,7 @@ AstNode* factor(std::vector<Token>& tokenList, u32& index)
                     case SLASH:
                     case STAR:
                     {
-                        BinaryOper* bOper = new BinaryOper(tokenList[index]);
-                        oper = new AstNode(bOper);
+                        oper = new BinaryOper(tokenList[index]);
                         index++;
                     }break;
                     default:
@@ -131,8 +124,7 @@ AstNode* factor(std::vector<Token>& tokenList, u32& index)
                         continue;
                 }
             AstNode* rhs = unary(tokenList,index);
-            BinaryExpr* expr = new BinaryExpr(lhs,oper,rhs);
-            lhs = new AstNode(expr);
+            lhs = new BinaryExpr(lhs,oper,rhs);
         }
     return lhs;
 }
@@ -146,16 +138,14 @@ AstNode* unary(std::vector<Token>& tokenList, u32& index)
             case MINUS:
             case BANG:
             {
-                UnaryOper* uOper = new UnaryOper(tokenList[index]);
-                oper = new AstNode(uOper);
+                oper = new UnaryOper(tokenList[index]);
                 index++;
                 expr = unary(tokenList,index);
             }break;
             default:
                 return primary(tokenList,index);
         }
-    UnaryExpr* uExpr = new UnaryExpr(oper,expr);
-    expr = new AstNode(uExpr);
+    expr = new UnaryExpr(oper,expr);
     return expr;
 }
 
@@ -171,8 +161,7 @@ AstNode* primary(std::vector<Token>& tokenList, u32& index)
             case SIGNED_INTEGER_NUMBER:
             case UNSIGNED_INTEGER_NUMBER:
             {
-                LiteralExpr* lExpr = new LiteralExpr(tokenList[index]);
-                expr = new AstNode(lExpr);
+                expr = new LiteralExpr(tokenList[index]);
                 index++;
             }break;
             case LEFT_PAREN:
@@ -182,8 +171,7 @@ AstNode* primary(std::vector<Token>& tokenList, u32& index)
                 AstNode* gExpr = expression(tokenList,index);
                 Token rParen = tokenList[index];
                 index++;
-                Group* group = new Group(lParen,gExpr,rParen);
-                expr = new AstNode(group);
+                expr =  new Group(lParen,gExpr,rParen);
             }break;
             default:
                 // TODO : error handling and other good stuff
