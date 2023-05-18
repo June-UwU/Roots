@@ -39,22 +39,22 @@ Error runInteractive()
         case BOOLEAN_OBJECT:
         {
             BooleanObject* obj = reinterpret_cast<BooleanObject*>(retObj);
-            std::cout << obj->getValue();
+            std::cout << "Evaluation : "<<obj->getValue() << "\n";
         }break;
         case FLOAT_OBJECT:
         {
             FloatObject* obj = reinterpret_cast<FloatObject*>(retObj);
-            std::cout << obj->getValue();
+            std::cout << "Evaluation : "<<obj->getValue() << "\n";
         }break;
         case SIGNED_INTEGER_OBJECT:
         {
             IntObject* obj = reinterpret_cast<IntObject*>(retObj);
-            std::cout << obj->getValue();
+            std::cout << "Evaluation : "<<obj->getValue() << "\n";
         }break;
         case UNSIGNED_INTEGER_OBJECT:
         {
             UintObject* obj = reinterpret_cast<UintObject*>(retObj);
-            std::cout << obj->getValue();
+            std::cout << "Evaluation : "<<obj->getValue() << "\n";
         }break;
         default:
             // LOG ERROR...?

@@ -60,6 +60,7 @@ RootObject* interpret(const Ast* ast)
                 runtimeStack.push(bExpr->expr);
             }break;
             case LITERAL:
+            {
                 if(REGISTER_UNINITIALIZED == R1State)
                 {
                     initializeRegister(R1,expr,R1State);
@@ -70,18 +71,21 @@ RootObject* interpret(const Ast* ast)
                 else
                 {
                     LOG_WARN("Literal with an initialized register, check what case that generated this automata");
-                    break;
                 }
+            }break;
             case UNARY_OPER:
             case BINARY_OPER:
-                    oper = runtimeStack.top();
-                    runtimeStack.pop();
-                    evaluate(R1,R1State,oper,runtimeStack);
-                    break;
+            {       
+                oper = runtimeStack.top();
+                runtimeStack.pop();
+                evaluate(R1,R1State,oper,runtimeStack);
+            }break;
             default:
                 LOG_WARN("default case for interpret");
+            break;
         }
     }
+    LOG_INFO("Root Object Creation Phase");
     RootObject* retObj = nullptr;
     switch(R1State)
     {
@@ -104,7 +108,7 @@ RootObject* interpret(const Ast* ast)
 void evaluateUnary(Register& accumulator, RegisterState& type,const AstNode* oper)
 {
     const UnaryOper* unaryOper = reinterpret_cast<const UnaryOper*>(oper);
-    Token uOper = unaryOper->oper;
+    Token uOper = unaryOper->getToken();
     switch(uOper.getTokenType())
     {
         case BANG:
@@ -114,8 +118,8 @@ void evaluateUnary(Register& accumulator, RegisterState& type,const AstNode* ope
                 case REGISTER_INT32:
                 {
                     bool value = true;
-                    s32 accuValue = std::get<s32>(accumulator);
-                    if( 0x0 != accuValue)
+                    s32 regVal = std::get<s32>(accumulator);
+                    if( 0x0 != regVal)
                     {
                         value = false;
                     }
@@ -125,8 +129,8 @@ void evaluateUnary(Register& accumulator, RegisterState& type,const AstNode* ope
                 case REGISTER_UINT32:
                 {
                     bool value = true;
-                    u32 accuValue = std::get<u32>(accumulator);
-                    if( 0x0 != accuValue)
+                    u32 regVal = std::get<u32>(accumulator);
+                    if( 0x0 != regVal)
                     {
                         value = false;
                     }
@@ -181,6 +185,7 @@ void evaluate(Register& accumulator,RegisterState& type,const AstNode* oper, Sta
         }break;
         default:
             LOG_WARN("evaluation error : oper is not an operator");
+        break;
     }
 }
 
@@ -188,340 +193,395 @@ void evaluateBinary(Register& accumulator, RegisterState& type,const AstNode* op
 {
     const BinaryOper* binaryOper = reinterpret_cast<const BinaryOper*>(oper);
     Token bOper = binaryOper->oper;
-    LiteralExpr* literalExpr = reinterpret_cast<LiteralExpr*>(literalExpr);
-    Literal literal = literalExpr->literal.getLiteral();
+    LiteralExpr* operand = reinterpret_cast<LiteralExpr*>(rhs);
+    Token operandToken = operand->getToken();
+    Literal operandVal = operandToken.getLiteral();
     switch(bOper.getTokenType())
     {
-        case STAR:
-        {
-            if((type == REGISTER_STRING) || (literalExpr->literal.getTokenType() == STRING))
-            {
-                LOG_WARN("undefined operation called for operants");
-                return;
-            }
-            else
-            {
-                if((type == REGISTER_FLOAT) || (literalExpr->literal.getTokenType() == FLOAT_NUMBER))
-                {
-                    if(type == REGISTER_FLOAT && literalExpr->literal.getTokenType() == FLOAT_NUMBER)
-                    {
-                        accumulator.emplace<f32>((std::get<f32>(accumulator) * std::get<f32>(literal))); 
-                    }
-                    else if(type == REGISTER_FLOAT)
-                    {
-                        f32 accValue = std::get<f32>(accumulator);
-                        switch(literalExpr->literal.getTokenType())
-                        {
-                            case UNSIGNED_INTEGER_NUMBER:
-                                accumulator.emplace<f32>((accValue * std::get<u32>(literal)));
-                                break;
-                            case SIGNED_INTEGER_NUMBER:
-                                accumulator.emplace<f32>((accValue * std::get<s32>(literal)));
-                                break;
-                        }
-                    }
-                    else if(FLOAT_NUMBER == literalExpr->literal.getTokenType())
-                    {
-                        f32 value = std::get<f32>(literal);
-                        type = REGISTER_FLOAT;
-                        switch(type)
-                        {
-                            case REGISTER_INT32:
-                                accumulator.emplace<f32>((value * std::get<s32>(accumulator)));
-                                break;
-                            case REGISTER_UINT32:
-                                accumulator.emplace<f32>((value * std::get<u32>(accumulator)));
-                                break;
-                        }
-                        type = REGISTER_FLOAT;
-                    }
-                    else
-                    {
-                        switch(literalExpr->literal.getTokenType())
-                        {
-                            case UNSIGNED_INTEGER_NUMBER:
-                            {
-                                u32 value = std::get<u32>(literal);
-                                switch(type)
-                                {
-                                    case REGISTER_INT32:
-                                    {
-                                        accumulator.emplace<s32>((value * std::get<s32>(accumulator)));
-                                    }break;
-                                    case REGISTER_UINT32:
-                                    {
-                                        accumulator.emplace<u32>((value * std::get<u32>(accumulator)));
-                                    }break;
-                                }
-                            }break;
-                            case SIGNED_INTEGER_NUMBER:
-                            {
-                                s32 value = std::get<s32>(literal);
-                                switch(type)
-                                {
-                                    case REGISTER_INT32:
-                                    {
-                                        accumulator.emplace<s32>((value * std::get<s32>(accumulator)));
-                                    }break;
-                                    case REGISTER_UINT32:
-                                    {
-                                        accumulator.emplace<s32>((value * std::get<u32>(accumulator)));
-                                    }break;
-                                }
-                                type = REGISTER_INT32;
-                            }break;
-                        }
-                    }
-                }
-            }
-        }break;
-        case SLASH:
-        {
-            if((type == REGISTER_STRING) || (literalExpr->literal.getTokenType() == STRING))
-            {
-                LOG_WARN("undefined operation called for operants");
-                return;
-            }
-            else
-            {
-                if((type == REGISTER_FLOAT) || (literalExpr->literal.getTokenType() == FLOAT_NUMBER))
-                {
-                    if(type == REGISTER_FLOAT && literalExpr->literal.getTokenType() == FLOAT_NUMBER)
-                    {
-                        accumulator.emplace<f32>((std::get<f32>(accumulator) / std::get<f32>(literal))); 
-                    }
-                    else if(type == REGISTER_FLOAT)
-                    {
-                        f32 accValue = std::get<f32>(accumulator);
-                        switch(literalExpr->literal.getTokenType())
-                        {
-                            case UNSIGNED_INTEGER_NUMBER:
-                                accumulator.emplace<f32>((accValue / std::get<u32>(literal)));
-                                break;
-                            case SIGNED_INTEGER_NUMBER:
-                                accumulator.emplace<f32>((accValue / std::get<s32>(literal)));
-                                break;
-                        }
-                    }
-                    else if(FLOAT_NUMBER == literalExpr->literal.getTokenType())
-                    {
-                        f32 value = std::get<f32>(literal);
-                        switch(type)
-                        {
-                            case REGISTER_INT32:
-                                accumulator.emplace<f32>((value / std::get<s32>(accumulator)));
-                                break;
-                            case REGISTER_UINT32:
-                                accumulator.emplace<f32>((value / std::get<u32>(accumulator)));
-                                break;
-                        }
-                        type = REGISTER_FLOAT;
-                    }
-                    else
-                    {
-                        switch(literalExpr->literal.getTokenType())
-                        {
-                            case UNSIGNED_INTEGER_NUMBER:
-                            {
-                                u32 value = std::get<u32>(literal);
-                                switch(type)
-                                {
-                                    case REGISTER_INT32:
-                                    {
-                                        type = REGISTER_INT32;
-                                        accumulator.emplace<s32>((s32)(value / std::get<s32>(accumulator)));
-                                    }break;
-                                    case REGISTER_UINT32:
-                                    {
-                                        accumulator.emplace<u32>((u32)(value / std::get<u32>(accumulator)));
-                                    }break;
-                                }
-                            }break;
-                            case SIGNED_INTEGER_NUMBER:
-                            {
-                                s32 value = std::get<s32>(literal);
-                                type = REGISTER_INT32;
-                                switch(type)
-                                {
-                                    case REGISTER_INT32:
-                                    {
-                                        accumulator.emplace<s32>((s32)(value / std::get<s32>(accumulator)));
-                                    }break;
-                                    case REGISTER_UINT32:
-                                    {
-                                        accumulator.emplace<s32>((s32)(value / std::get<u32>(accumulator)));
-                                    }break;
-                                }
-                            }break;
-                        }
-                    }
-                }
-            }
-        }break;
         case PLUS:
         {
-            if((type == REGISTER_STRING) || (literalExpr->literal.getTokenType() == STRING))
+            TokenType operandType = operandToken.getTokenType(); 
+            if(operandType == STRING && type == REGISTER_STRING)
             {
-                type = REGISTER_STRING;
-                accumulator.emplace<std::string>(std::get<std::string>(accumulator) +  std::get<std::string>(literal));
+                accumulator.emplace<std::string>(std::get<std::string>(operandVal) 
+                + std::get<std::string>(accumulator));
+            }
+            else if(type == REGISTER_FLOAT && operandType != STRING)
+            {
+                f32 regConst = std::get<f32>(accumulator);
+                switch (operandType)
+                {
+                    case UNSIGNED_INTEGER_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<u32>(operandVal) + regConst);
+                    }break;
+                    case SIGNED_INTEGER_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<s32>(operandVal) + regConst);
+                    }break;
+                    case FLOAT_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<f32>(operandVal) + regConst);
+                    }break;
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
+            }
+            else if(operandType == FLOAT_NUMBER && type != REGISTER_STRING)
+            {
+                type = REGISTER_FLOAT;
+                f32 operConst = std::get<f32>(operandVal);
+                switch(type)
+                {
+                    case REGISTER_INT32:
+                    {
+                        accumulator.emplace<f32>(operConst + std::get<s32>(accumulator));
+                    }break;
+                    case REGISTER_UINT32:
+                    {
+                        accumulator.emplace<f32>(operConst + std::get<u32>(accumulator));
+                    }break;
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
             }
             else
             {
-                if((type == REGISTER_FLOAT) || (literalExpr->literal.getTokenType() == FLOAT_NUMBER))
+                switch (type)
                 {
-                    if(type == REGISTER_FLOAT && literalExpr->literal.getTokenType() == FLOAT_NUMBER)
+                    case REGISTER_INT32:
                     {
-                        accumulator.emplace<f32>((std::get<f32>(accumulator) + std::get<f32>(literal))); 
-                    }
-                    else if(type == REGISTER_FLOAT)
-                    {
-                        f32 accValue = std::get<f32>(accumulator);
-                        switch(literalExpr->literal.getTokenType())
-                        {
-                            case UNSIGNED_INTEGER_NUMBER:
-                                accumulator.emplace<f32>((accValue + std::get<u32>(literal)));
-                                break;
-                            case SIGNED_INTEGER_NUMBER:
-                                accumulator.emplace<f32>((accValue + std::get<s32>(literal)));
-                                break;
-                        }
-                    }
-                    else if(FLOAT_NUMBER == literalExpr->literal.getTokenType())
-                    {
-                        f32 value = std::get<f32>(literal);
-                        type = REGISTER_FLOAT;
-                        switch(type)
-                        {
-                            case REGISTER_INT32:
-                                accumulator.emplace<f32>((value + std::get<s32>(accumulator)));
-                                break;
-                            case REGISTER_UINT32:
-                                accumulator.emplace<f32>((value + std::get<u32>(accumulator)));
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch(literalExpr->literal.getTokenType())
+                        s32 regVal = std::get<s32>(accumulator);
+                        switch (operandType)
                         {
                             case UNSIGNED_INTEGER_NUMBER:
                             {
-                                u32 value = std::get<u32>(literal);
-                                switch(type)
-                                {
-                                    case REGISTER_INT32:
-                                    {
-                                        accumulator.emplace<s32>((value + std::get<s32>(accumulator)));
-                                    }break;
-                                    case REGISTER_UINT32:
-                                    {
-                                        accumulator.emplace<u32>((value + std::get<u32>(accumulator)));
-                                    }break;
-                                }
+                                accumulator.emplace<s32>(regVal + std::get<u32>(operandVal));
                             }break;
                             case SIGNED_INTEGER_NUMBER:
                             {
-                                s32 value = std::get<s32>(literal);
+                                accumulator.emplace<s32>(regVal + std::get<s32>(operandVal));
+                            }break;
+                            default:
+                                LOG_WARN("unsupported types for operation attempt");
+                            break;
+                        }
+                    }break;
+                    case REGISTER_UINT32:
+                    {
+                        u32 regVal = std::get<u32>(accumulator);
+                        switch(operandType)
+                        {
+                            case UNSIGNED_INTEGER_NUMBER:
+                            {
+                                accumulator.emplace<u32>(regVal + std::get<u32>(operandVal));
+                            }break;
+                            case SIGNED_INTEGER_NUMBER:
+                            {
                                 type = REGISTER_INT32;
-                                switch(type)
-                                {
-                                    case REGISTER_INT32:
-                                    {
-                                        accumulator.emplace<s32>((value + std::get<s32>(accumulator)));
-                                    }break;
-                                    case REGISTER_UINT32:
-                                    {
-                                        accumulator.emplace<s32>((value + std::get<u32>(accumulator)));
-                                    }break;
-                                }
+                                accumulator.emplace<s32>(regVal + std::get<s32>(operandVal));
                             }break;
+                            default:
+                                LOG_WARN("unsupported types for operation attempt");
+                            break;
                         }
-                    }
+                    }break;             
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
                 }
             }
         }break;
         case MINUS:
         {
-            if((type == REGISTER_STRING) || (literalExpr->literal.getTokenType() == STRING))
+            TokenType operandType = operandToken.getTokenType(); 
+            if(operandType == STRING && type == REGISTER_STRING)
             {
-                LOG_WARN("undefined operation called for operants");
-                return;
+                LOG_WARN("unsupported types for operation attempt");
+            }
+            else if(type == REGISTER_FLOAT && operandType != STRING)
+            {
+                f32 regConst = std::get<f32>(accumulator);
+                switch (operandType)
+                {
+                    case UNSIGNED_INTEGER_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<u32>(operandVal) - regConst);
+                    }break;
+                    case SIGNED_INTEGER_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<s32>(operandVal) - regConst);
+                    }break;
+                    case FLOAT_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<f32>(operandVal) - regConst);
+                    }break;
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
+            }
+            else if(operandType == FLOAT_NUMBER && type != REGISTER_STRING)
+            {
+                type = REGISTER_FLOAT;
+                f32 operConst = std::get<f32>(operandVal);
+                switch(type)
+                {
+                    case REGISTER_INT32:
+                    {
+                        accumulator.emplace<f32>(operConst - std::get<s32>(accumulator));
+                    }break;
+                    case REGISTER_UINT32:
+                    {
+                        accumulator.emplace<f32>(operConst - std::get<u32>(accumulator));
+                    }break;
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
             }
             else
             {
-                if((type == REGISTER_FLOAT) || (literalExpr->literal.getTokenType() == FLOAT_NUMBER))
+                switch (type)
                 {
-                    if(type == REGISTER_FLOAT && literalExpr->literal.getTokenType() == FLOAT_NUMBER)
+                    case REGISTER_INT32:
                     {
-                        accumulator.emplace<f32>((std::get<f32>(accumulator) - std::get<f32>(literal))); 
-                    }
-                    else if(type == REGISTER_FLOAT)
-                    {
-                        f32 accValue = std::get<f32>(accumulator);
-                        switch(literalExpr->literal.getTokenType())
-                        {
-                            case UNSIGNED_INTEGER_NUMBER:
-                                accumulator.emplace<f32>((accValue - std::get<u32>(literal)));
-                                break;
-                            case SIGNED_INTEGER_NUMBER:
-                                accumulator.emplace<f32>((accValue - std::get<s32>(literal)));
-                                break;
-                        }
-                    }
-                    else if(FLOAT_NUMBER == literalExpr->literal.getTokenType())
-                    {
-                        f32 value = std::get<f32>(literal);
-                        type = REGISTER_FLOAT;
-                        switch(type)
-                        {
-                            case REGISTER_INT32:
-                                accumulator.emplace<f32>((value - std::get<s32>(accumulator)));
-                                break;
-                            case REGISTER_UINT32:
-                                accumulator.emplace<f32>((value - std::get<u32>(accumulator)));
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch(literalExpr->literal.getTokenType())
+                        s32 regVal = std::get<s32>(accumulator);
+                        switch (operandType)
                         {
                             case UNSIGNED_INTEGER_NUMBER:
                             {
-                                u32 value = std::get<u32>(literal);
-                                switch(type)
-                                {
-                                    case REGISTER_INT32:
-                                    {
-                                        accumulator.emplace<s32>((value - std::get<s32>(accumulator)));
-                                    }break;
-                                    case REGISTER_UINT32:
-                                    {
-                                        accumulator.emplace<u32>((value - std::get<u32>(accumulator)));
-                                    }break;
-                                }
+                                accumulator.emplace<s32>(regVal - std::get<u32>(operandVal));
                             }break;
                             case SIGNED_INTEGER_NUMBER:
                             {
-                                s32 value = std::get<s32>(literal);
+                                accumulator.emplace<s32>(regVal - std::get<s32>(operandVal));
+                            }break;
+                            default:
+                                LOG_WARN("unsupported types for operation attempt");
+                            break;
+                        }
+                    }break;
+                    case REGISTER_UINT32:
+                    {
+                        u32 regVal = std::get<u32>(accumulator);
+                        switch(operandType)
+                        {
+                            case UNSIGNED_INTEGER_NUMBER:
+                            {
+                                accumulator.emplace<u32>(regVal - std::get<u32>(operandVal));
+                            }break;
+                            case SIGNED_INTEGER_NUMBER:
+                            {
                                 type = REGISTER_INT32;
-                                switch(type)
-                                {
-                                    case REGISTER_INT32:
-                                    {
-                                        accumulator.emplace<s32>((value - std::get<s32>(accumulator)));
-                                    }break;
-                                    case REGISTER_UINT32:
-                                    {
-                                        accumulator.emplace<s32>((value - std::get<u32>(accumulator)));
-                                    }break;
-                                }
+                                accumulator.emplace<s32>(regVal - std::get<s32>(operandVal));
                             }break;
+                            default:
+                                LOG_WARN("unsupported types for operation attempt");
+                            break;
                         }
-                    }
+                    }break;             
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
                 }
             }
         }break;
+        case STAR:
+        {
+            TokenType operandType = operandToken.getTokenType(); 
+            if(operandType == STRING && type == REGISTER_STRING)
+            {
+                LOG_WARN("unsupported types for operation attempt");
+            }
+            else if(type == REGISTER_FLOAT && operandType != STRING)
+            {
+                f32 regConst = std::get<f32>(accumulator);
+                switch (operandType)
+                {
+                    case UNSIGNED_INTEGER_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<u32>(operandVal) * regConst);
+                    }break;
+                    case SIGNED_INTEGER_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<s32>(operandVal) * regConst);
+                    }break;
+                    case FLOAT_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<f32>(operandVal) * regConst);
+                    }break;
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
+            }
+            else if(operandType == FLOAT_NUMBER && type != REGISTER_STRING)
+            {
+                type = REGISTER_FLOAT;
+                f32 operConst = std::get<f32>(operandVal);
+                switch(type)
+                {
+                    case REGISTER_INT32:
+                    {
+                        accumulator.emplace<f32>(operConst * std::get<s32>(accumulator));
+                    }break;
+                    case REGISTER_UINT32:
+                    {
+                        accumulator.emplace<f32>(operConst * std::get<u32>(accumulator));
+                    }break;
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
+            }
+            else
+            {
+                switch (type)
+                {
+                    case REGISTER_INT32:
+                    {
+                        s32 regVal = std::get<s32>(accumulator);
+                        switch (operandType)
+                        {
+                            case UNSIGNED_INTEGER_NUMBER:
+                            {
+                                accumulator.emplace<s32>(regVal * std::get<u32>(operandVal));
+                            }break;
+                            case SIGNED_INTEGER_NUMBER:
+                            {
+                                accumulator.emplace<s32>(regVal * std::get<s32>(operandVal));
+                            }break;
+                            default:
+                                LOG_WARN("unsupported types for operation attempt");
+                            break;
+                        }
+                    }break;
+                    case REGISTER_UINT32:
+                    {
+                        u32 regVal = std::get<u32>(accumulator);
+                        switch(operandType)
+                        {
+                            case UNSIGNED_INTEGER_NUMBER:
+                            {
+                                accumulator.emplace<u32>(regVal * std::get<u32>(operandVal));
+                            }break;
+                            case SIGNED_INTEGER_NUMBER:
+                            {
+                                type = REGISTER_INT32;
+                                accumulator.emplace<s32>(regVal * std::get<s32>(operandVal));
+                            }break;
+                            default:
+                                LOG_WARN("unsupported types for operation attempt");
+                            break;
+                        }
+                    }break;             
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
+            }
+        }break;
+        case SLASH:
+        {
+            TokenType operandType = operandToken.getTokenType(); 
+            if(operandType == STRING && type == REGISTER_STRING)
+            {
+                LOG_WARN("unsupported types for operation attempt");
+            }
+            else if(type == REGISTER_FLOAT && operandType != STRING)
+            {
+                f32 regConst = std::get<f32>(accumulator);
+                switch (operandType)
+                {
+                    case UNSIGNED_INTEGER_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<u32>(operandVal) / regConst);
+                    }break;
+                    case SIGNED_INTEGER_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<s32>(operandVal) / regConst);
+                    }break;
+                    case FLOAT_NUMBER:
+                    {
+                        accumulator.emplace<f32>(std::get<f32>(operandVal) / regConst);
+                    }break;
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
+            }
+            else if(operandType == FLOAT_NUMBER && type != REGISTER_STRING)
+            {
+                type = REGISTER_FLOAT;
+                f32 operConst = std::get<f32>(operandVal);
+                switch(type)
+                {
+                    case REGISTER_INT32:
+                    {
+                        accumulator.emplace<f32>(operConst / std::get<s32>(accumulator));
+                    }break;
+                    case REGISTER_UINT32:
+                    {
+                        accumulator.emplace<f32>(operConst / std::get<u32>(accumulator));
+                    }break;
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
+            }
+            else
+            {
+                switch (type)
+                {
+                    case REGISTER_INT32:
+                    {
+                        s32 regVal = std::get<s32>(accumulator);
+                        switch (operandType)
+                        {
+                            case UNSIGNED_INTEGER_NUMBER:
+                            {
+                                accumulator.emplace<s32>(regVal / std::get<u32>(operandVal));
+                            }break;
+                            case SIGNED_INTEGER_NUMBER:
+                            {
+                                accumulator.emplace<s32>(regVal / std::get<s32>(operandVal));
+                            }break;
+                            default:
+                                LOG_WARN("unsupported types for operation attempt");
+                            break;
+                        }
+                    }break;
+                    case REGISTER_UINT32:
+                    {
+                        u32 regVal = std::get<u32>(accumulator);
+                        switch(operandType)
+                        {
+                            case UNSIGNED_INTEGER_NUMBER:
+                            {
+                                accumulator.emplace<u32>(regVal / std::get<u32>(operandVal));
+                            }break;
+                            case SIGNED_INTEGER_NUMBER:
+                            {
+                                type = REGISTER_INT32;
+                                accumulator.emplace<s32>(regVal / std::get<s32>(operandVal));
+                            }break;
+                            default:
+                                LOG_WARN("unsupported types for operation attempt");
+                            break;
+                        }
+                    }break;             
+                    default:
+                        LOG_WARN("unsupported types for operation attempt");
+                    break;
+                }
+            }
+        }break;
+        default:
+            LOG_WARN("unsupported operation");
+        break;
     }
 }
 
