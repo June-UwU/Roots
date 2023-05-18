@@ -17,6 +17,11 @@ file(GLOB_RECURSE run_time_src ${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.cpp)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${run_time_inc})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${run_time_src})
 
+file(GLOB_RECURSE memory_inc ${CMAKE_CURRENT_SOURCE_DIR}/memory/*.hpp)
+file(GLOB_RECURSE memory_src ${CMAKE_CURRENT_SOURCE_DIR}/memory/*.cpp)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${memory_inc})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${memory_src})
+
 add_executable( ${PROJECT_NAME}
     ${common_inc}
     ${common_src}
@@ -24,9 +29,13 @@ add_executable( ${PROJECT_NAME}
     ${tooling_src}
     ${run_time_inc}
     ${run_time_src}
+    ${memory_inc}
+    ${memory_src}
     )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/generics/)
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tools/)
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/memory/)
