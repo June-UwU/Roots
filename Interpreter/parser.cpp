@@ -7,28 +7,29 @@
 bool isEnd(std::vector<Token>& tokenList, u32& index);
 
 // Grammar rules for the RD parser.
-AstNode* expression(std::vector<Token>& tokenList,u32& index);
-AstNode* equality(std::vector<Token>& tokenList, u32& index);
-AstNode* comparsion(std::vector<Token>& tokenList, u32& index);
-AstNode* term(std::vector<Token>& tokenList, u32& index);
-AstNode* factor(std::vector<Token>& tokenList, u32& index);
-AstNode* unary(std::vector<Token>& tokenList, u32& index);
-AstNode* primary(std::vector<Token>& tokenList, u32& index);
+AstNode* expression(ArenaAllocator& allocator, std::vector<Token>& tokenList,u32& index);
+AstNode* equality(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
+AstNode* comparsion(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
+AstNode* term(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
+AstNode* factor(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
+AstNode* unary(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
+AstNode* primary(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
 
-AstNode* parse(std::vector<Token>& tokenList)
+AstNode* parse(ArenaAllocator& allocator, std::vector<Token>& tokenList)
 {
     u32 currentIndex = 0;
-    return expression(tokenList, currentIndex);
+    return expression(allocator, tokenList, currentIndex);
 }
 
-AstNode* expression(std::vector<Token>& tokenList, u32& index)
+AstNode* expression(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index)
 {
-    return equality(tokenList,index);
+    return equality(allocator, tokenList,index);
 }
 
-AstNode* equality(std::vector<Token>& tokenList, u32& index)
+AstNode* equality(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index)
 {
-    AstNode* lhs = comparsion(tokenList,index);
+    AstNode* expr = nullptr;
+    AstNode* lhs = comparsion(allocator, tokenList,index);
     bool isOper = true;
     while(isOper && !isEnd(tokenList,index))
         {
@@ -38,7 +39,8 @@ AstNode* equality(std::vector<Token>& tokenList, u32& index)
                 case EQUAL_EQUAL:
                 case BANG_EQUAL:
                 {   
-                    oper = new BinaryOper(tokenList[index]);
+                    oper = (AstNode*)allocator.allocate(sizeof(BinaryOper)); 
+                    oper = new (oper) BinaryOper(tokenList[index]);
                     index++;
                 }break;
                 default:
@@ -46,15 +48,17 @@ AstNode* equality(std::vector<Token>& tokenList, u32& index)
                     isOper = false;
                     continue;
             }
-            AstNode* rhs = comparsion(tokenList,index);
-            lhs = new BinaryExpr(lhs,oper,rhs);
+            AstNode* rhs = comparsion(allocator, tokenList,index);
+            expr = (AstNode*)allocator.allocate(sizeof(BinaryExpr));
+            lhs = new (expr) BinaryExpr(lhs,oper,rhs);
         }
     return lhs;
 }
 
-AstNode* comparsion(std::vector<Token>& tokenList, u32& index)
+AstNode* comparsion(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index)
 {
-    AstNode* lhs = term(tokenList,index);
+    AstNode* expr = nullptr;
+    AstNode* lhs = term(allocator,tokenList,index);
     bool isOper = true;
     while(isOper && !isEnd(tokenList,index))
         {
@@ -66,22 +70,25 @@ AstNode* comparsion(std::vector<Token>& tokenList, u32& index)
                     case GREATER:
                     case LESS:
                     {
-                        oper = new BinaryOper(tokenList[index]);
+                        oper = (BinaryOper*)allocator.allocate(sizeof(BinaryOper));
+                        oper = new (oper) BinaryOper(tokenList[index]);
                         index++;
                     }break;
                     default:
                         isOper = false;
                         continue;
                 }
-            AstNode* rhs = term(tokenList,index);
-            lhs = new BinaryExpr(lhs,oper,rhs); 
+            AstNode* rhs = term(allocator,tokenList,index);
+            expr = (BinaryExpr*)allocator.allocate(sizeof(BinaryExpr));
+            lhs = new (expr) BinaryExpr(lhs,oper,rhs); 
         }
     return lhs;
 }
 
-AstNode* term(std::vector<Token>& tokenList,u32& index)
+AstNode* term(ArenaAllocator& allocator, std::vector<Token>& tokenList,u32& index)
 {
-    AstNode* lhs = factor(tokenList,index);
+    AstNode* expr = nullptr;
+    AstNode* lhs = factor(allocator,tokenList,index);
     bool isOper = true;
     while(isOper && !isEnd(tokenList,index))
         {
@@ -91,22 +98,25 @@ AstNode* term(std::vector<Token>& tokenList,u32& index)
                     case MINUS:
                     case PLUS:
                     {
-                        oper = new BinaryOper(tokenList[index]);
+                        oper = (AstNode*)allocator.allocate(sizeof(BinaryOper));
+                        oper = new (oper) BinaryOper(tokenList[index]);
                         index++;
                     }break;
                     default:
                         isOper = false;
                         continue;
                 }
-            AstNode* rhs = factor(tokenList,index);
-            lhs = new BinaryExpr(lhs,oper,rhs);
+            AstNode* rhs = factor(allocator,tokenList,index);
+            expr = (AstNode*) allocator.allocate(sizeof(BinaryExpr));
+            lhs = new (expr) BinaryExpr(lhs,oper,rhs);
         }
     return lhs;
 }
 
-AstNode* factor(std::vector<Token>& tokenList, u32& index)
+AstNode* factor(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index)
 {
-    AstNode* lhs = unary(tokenList, index);
+    AstNode* expr = nullptr;
+    AstNode* lhs = unary(allocator,tokenList, index);
     bool isOper = true;
     while(isOper && !isEnd(tokenList,index))
         {
@@ -116,21 +126,24 @@ AstNode* factor(std::vector<Token>& tokenList, u32& index)
                     case SLASH:
                     case STAR:
                     {
-                        oper = new BinaryOper(tokenList[index]);
+                        oper = (AstNode*) allocator.allocate(sizeof(BinaryOper));
+                        oper = new (oper) BinaryOper(tokenList[index]);
                         index++;
                     }break;
                     default:
                         isOper = false;
                         continue;
                 }
-            AstNode* rhs = unary(tokenList,index);
-            lhs = new BinaryExpr(lhs,oper,rhs);
+            AstNode* rhs = unary(allocator,tokenList,index);
+            expr = (AstNode*) allocator.allocate(sizeof(BinaryExpr));
+            lhs = new (expr) BinaryExpr(lhs,oper,rhs);
         }
     return lhs;
 }
 
-AstNode* unary(std::vector<Token>& tokenList, u32& index)
+AstNode* unary(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index)
 {
+    AstNode* tempExpr = nullptr;
     AstNode* expr = nullptr;
     AstNode* oper = nullptr;
     switch(tokenList[index].getTokenType())
@@ -138,18 +151,20 @@ AstNode* unary(std::vector<Token>& tokenList, u32& index)
             case MINUS:
             case BANG:
             {
-                oper = new UnaryOper(tokenList[index]);
+                oper = (AstNode*) allocator.allocate(sizeof(UnaryOper));
+                oper = new (oper) UnaryOper(tokenList[index]);
                 index++;
-                expr = unary(tokenList,index);
+                expr = unary(allocator,tokenList,index);
             }break;
             default:
-                return primary(tokenList,index);
+                return primary(allocator,tokenList,index);
         }
-    expr = new UnaryExpr(oper,expr);
+    tempExpr = (AstNode*) allocator.allocate(sizeof(UnaryExpr));
+    expr = new (tempExpr) UnaryExpr(oper,expr);
     return expr;
 }
 
-AstNode* primary(std::vector<Token>& tokenList, u32& index)
+AstNode* primary(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index)
 {
     AstNode* expr = nullptr;
 
@@ -161,17 +176,19 @@ AstNode* primary(std::vector<Token>& tokenList, u32& index)
             case SIGNED_INTEGER_NUMBER:
             case UNSIGNED_INTEGER_NUMBER:
             {
-                expr = new LiteralExpr(tokenList[index]);
+                expr = (AstNode*) allocator.allocate(sizeof(LiteralExpr));
+                expr = new (expr) LiteralExpr(tokenList[index]);
                 index++;
             }break;
             case LEFT_PAREN:
             {
                 Token lParen = tokenList[index];
                 index++;
-                AstNode* gExpr = expression(tokenList,index);
+                AstNode* gExpr = expression(allocator,tokenList,index);
                 Token rParen = tokenList[index];
                 index++;
-                expr =  new Group(lParen,gExpr,rParen);
+                expr = (AstNode*) allocator.allocate(sizeof(Group));
+                expr =  new (expr) Group(lParen,gExpr,rParen);
             }break;
             default:
                 // TODO : error handling and other good stuff

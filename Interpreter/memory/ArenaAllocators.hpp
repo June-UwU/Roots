@@ -12,6 +12,7 @@ class ArenaAllocator
         ArenaAllocator& operator=(ArenaAllocator&& rhs);
         ~ArenaAllocator();
         void* allocate(u32 size);
+        void reset();
     private:
         u8* arena;
         u32 offset;

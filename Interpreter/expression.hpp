@@ -55,7 +55,6 @@ class Group : public AbstractExpr
 {
     public:
         Group(Token leftRef, AstNode* exprRef, Token rightRef);
-        ~Group();
     public:
         Token leftToken;
         AstNode* expr;
@@ -66,7 +65,6 @@ class UnaryExpr : public AbstractExpr
 {
     public:
         UnaryExpr(AstNode* pOper, AstNode* pExpr);
-        ~UnaryExpr();
     public:
         AstNode* unaryOper;
         AstNode* expr;
@@ -76,7 +74,6 @@ class BinaryExpr : public AbstractExpr
 {
     public:
         BinaryExpr(AstNode* lhsExpr, AstNode* pOper, AstNode* rhsExpr);
-        ~BinaryExpr();
     public:
         AstNode* leftExpr;
         AstNode* binaryOper;

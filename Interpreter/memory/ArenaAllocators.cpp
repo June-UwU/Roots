@@ -1,5 +1,5 @@
 #include "ArenaAllocators.hpp"
-
+#include "../logger.hpp"
 
 ArenaAllocator::ArenaAllocator(u32 capacity)
     :offset{0u}
@@ -20,6 +20,7 @@ ArenaAllocator& ArenaAllocator::operator=(ArenaAllocator&& rhs)
     arena = rhs.arena;
     offset = rhs.offset;
     size = rhs.size;
+    return *this;
 }
 
 ArenaAllocator::~ArenaAllocator()
@@ -36,4 +37,9 @@ void* ArenaAllocator::allocate(u32 allocSize)
         offset += allocSize;               
     }
     return retPtr;
+}
+
+void ArenaAllocator::reset()
+{
+    offset = 0;
 }

@@ -18,22 +18,12 @@ Expr::Expr(AstNode* sExpr, ExprType exprType)
     type = exprType;
 }
 
-Expr::~Expr()
-{
-    delete expr;
-}
-
 Group::Group(Token lhs, AstNode* midExpr, Token rhs)
     :leftToken{lhs}
     ,expr{midExpr}
     ,rightToken{rhs}
 {
     type = GROUP;
-}
-
-Group::~Group()
-{
-    delete expr;
 }
 
 UnaryExpr::UnaryExpr(AstNode* oper, AstNode* exprRef)
@@ -43,23 +33,12 @@ UnaryExpr::UnaryExpr(AstNode* oper, AstNode* exprRef)
     type = UNARY_EXPR;
 }
 
-UnaryExpr::~UnaryExpr()
-{
-    delete expr;
-}
-
 BinaryExpr::BinaryExpr(AstNode* lhs, AstNode* oper, AstNode* rhs)
     :leftExpr{lhs}
     ,binaryOper{oper}
     ,rightExpr{rhs}
 {
     type = BINARY_EXPR;
-}
-
-BinaryExpr::~BinaryExpr()
-{
-    delete leftExpr;
-    delete rightExpr;
 }
 
 LiteralExpr::LiteralExpr(Token literalRef)

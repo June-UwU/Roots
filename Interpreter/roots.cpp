@@ -4,6 +4,7 @@
 #include "logger.hpp"
 #include "astPrettyPrinter.hpp"
 #include "runtime/interpreter.hpp"
+#include "memoryUnits.hpp"
 #include <iostream>
 #include <cstring>
 
@@ -17,6 +18,7 @@ Error runInteractive()
     std::vector<Token> tokenList;
     u32 tokenListIndex = 0;
     AstNode* ast = nullptr;
+    ArenaAllocator astArena;
     while(true)
     {
         std::string statement;
@@ -26,12 +28,10 @@ Error runInteractive()
         {
             break;
         }
-        delete ast;
         lexInteractive(tokenList,statement);
         run();
         tokenList.pop_back();
-        ast = parse(tokenList);
-        LOG_INFO("parsing done");
+        ast = parse(astArena,tokenList);
         astPrettyPrint(ast);
         RootObject* retObj = interpret(ast);
         switch (retObj->getType())
@@ -60,8 +60,8 @@ Error runInteractive()
             // LOG ERROR...?
             break;
         }
-        delete ast;
-        ast = nullptr;
+        astArena.reset();
+        tokenList.clear();
     }
     delete ast;
     return NOERROR;
