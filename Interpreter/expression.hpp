@@ -14,7 +14,7 @@ class UnaryOper;
 
 using Ast = AbstractExpr;
 using AstNode = AbstractExpr;
-
+constexpr const u32 PAIR = 2;
 typedef enum ExprType
 {
     EXPR = 0x0,
@@ -31,6 +31,13 @@ typedef enum ExprType
     EXPRTYPE
 }ExprType;
 
+typedef enum Placement
+{
+    RHS = 0x0,
+    LHS,
+    PLACEMENT
+}Placement;
+
 bool isValidOper(Token token, ExprType type);
 const char* getExprTypeString(ExprType type);
 
@@ -46,8 +53,9 @@ class Expr : public AbstractExpr
 {
     public:
         Expr(AstNode* sExpr, ExprType type);
-        ~Expr();
-    public:
+        ~Expr(); 
+        AstNode* getExpr();
+    private:
         AstNode* expr;
 };
 
@@ -55,29 +63,33 @@ class Group : public AbstractExpr
 {
     public:
         Group(Token leftRef, AstNode* exprRef, Token rightRef);
-    public:
-        Token leftToken;
+        Token getOperator(Placement place);
+        AstNode* getExpr();
+    private:
+        Token oper[PAIR];
         AstNode* expr;
-        Token rightToken;
 };
 
 class UnaryExpr : public AbstractExpr
 {
     public:
         UnaryExpr(AstNode* pOper, AstNode* pExpr);
-    public:
-        AstNode* unaryOper;
+        AstNode* getOperator();
+        AstNode* getExpr();
+    private:
+        AstNode* oper;
         AstNode* expr;
 };
 
 class BinaryExpr : public AbstractExpr
 {
     public:
-        BinaryExpr(AstNode* lhsExpr, AstNode* pOper, AstNode* rhsExpr);
-    public:
-        AstNode* leftExpr;
-        AstNode* binaryOper;
-        AstNode* rightExpr;
+        BinaryExpr(AstNode* lhs, AstNode* pOper, AstNode* rhs);
+        AstNode* getExpr(Placement place);
+        AstNode* getOperator();
+    private:
+        AstNode* expr[PAIR];
+        AstNode* oper;
 };
 
 class LiteralExpr : public AbstractExpr 
@@ -86,7 +98,7 @@ class LiteralExpr : public AbstractExpr
         LiteralExpr(Token literal); 
         Token getToken() const;
     public:
-        Token literal;
+        Token expr;
 };
 
 class UnaryOper : public AbstractExpr

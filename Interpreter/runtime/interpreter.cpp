@@ -39,25 +39,25 @@ RootObject* interpret(const Ast* ast)
             case BINARY_EXPR:
             {
                 BinaryExpr* bExpr = reinterpret_cast<BinaryExpr*>(expr);
-                runtimeStack.push(bExpr->rightExpr);
-                runtimeStack.push(bExpr->binaryOper);
-                runtimeStack.push(bExpr->leftExpr);
+                runtimeStack.push(bExpr->getExpr(RHS));
+                runtimeStack.push(bExpr->getOperator());
+                runtimeStack.push(bExpr->getExpr(LHS));
             }break;
             case GROUP:
             {
                 Group* group = reinterpret_cast<Group*>(expr);
-                runtimeStack.push(group->expr);
+                runtimeStack.push(group->getExpr());
             }break;
             case UNARY_EXPR:
             {
                 UnaryExpr* uExpr = reinterpret_cast<UnaryExpr*>(expr);
-                runtimeStack.push(uExpr->unaryOper);
-                runtimeStack.push(uExpr->expr);
+                runtimeStack.push(uExpr->getOperator());
+                runtimeStack.push(uExpr->getExpr());
             }break;
             case EXPR:
             {
                 Expr* bExpr = reinterpret_cast<Expr*>(expr);
-                runtimeStack.push(bExpr->expr);
+                runtimeStack.push(bExpr->getExpr());
             }break;
             case LITERAL:
             {
@@ -587,23 +587,24 @@ void evaluateBinary(Register& accumulator, RegisterState& type,const AstNode* op
 
 void initializeRegister(Register& R1, const AstNode* node, RegisterState& R1State)
 {
-    const LiteralExpr* expr = reinterpret_cast<const LiteralExpr*>(node); 
+    const LiteralExpr* expr = reinterpret_cast<const LiteralExpr*>(node);
+    Literal litValue = expr->getToken().getLiteral();  
     switch(expr->getToken().getTokenType())
     {
         case STRING:
-            R1.emplace<std::string>(std::get<std::string>(expr->literal.getLiteral()));
+            R1.emplace<std::string>(std::get<std::string>(litValue));
             R1State = REGISTER_STRING;
             break;
         case UNSIGNED_INTEGER_NUMBER:
-            R1.emplace<u32>(std::get<u32>(expr->literal.getLiteral()));
+            R1.emplace<u32>(std::get<u32>(litValue));
             R1State = REGISTER_UINT32;
             break;
         case SIGNED_INTEGER_NUMBER:
-            R1.emplace<s32>(std::get<s32>(expr->literal.getLiteral()));
+            R1.emplace<s32>(std::get<s32>(litValue));
             R1State = REGISTER_INT32;
             break;
         case FLOAT_NUMBER:
-            R1.emplace<f32>(std::get<f32>(expr->literal.getLiteral()));
+            R1.emplace<f32>(std::get<f32>(litValue));
             R1State = REGISTER_FLOAT;
             break;
         default:

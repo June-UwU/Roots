@@ -18,38 +18,87 @@ Expr::Expr(AstNode* sExpr, ExprType exprType)
     type = exprType;
 }
 
-Group::Group(Token lhs, AstNode* midExpr, Token rhs)
-    :leftToken{lhs}
-    ,expr{midExpr}
-    ,rightToken{rhs}
+AstNode *Expr::getExpr()
 {
+    return expr;
+}
+
+Group::Group(Token lhs, AstNode* midExpr, Token rhs)
+    :expr{midExpr}
+{
+    oper[RHS] = rhs;
+    oper[LHS] = lhs;
     type = GROUP;
 }
 
-UnaryExpr::UnaryExpr(AstNode* oper, AstNode* exprRef)
-    :unaryOper{oper}
+Token Group::getOperator(Placement place)
+{
+    if(LHS == place)
+    {
+        return oper[LHS];
+    }
+    else
+    {
+        return oper[RHS];
+    }
+}
+
+AstNode *Group::getExpr()
+{
+    return expr;
+}
+
+UnaryExpr::UnaryExpr(AstNode* pOper, AstNode* exprRef)
+    :oper{pOper}
     ,expr{exprRef}
 {
     type = UNARY_EXPR;
 }
 
-BinaryExpr::BinaryExpr(AstNode* lhs, AstNode* oper, AstNode* rhs)
-    :leftExpr{lhs}
-    ,binaryOper{oper}
-    ,rightExpr{rhs}
+AstNode *UnaryExpr::getOperator()
 {
+    return oper;
+}
+
+AstNode *UnaryExpr::getExpr()
+{
+    return expr;
+}
+
+BinaryExpr::BinaryExpr(AstNode* lhs, AstNode* pOper, AstNode* rhs)
+    :oper{pOper}
+{
+    expr[LHS] = lhs;
+    expr[RHS] = rhs;
     type = BINARY_EXPR;
 }
 
+AstNode *BinaryExpr::getExpr(Placement place)
+{
+    if(LHS == place)
+    {
+        return expr[LHS];
+    }
+    else
+    {
+        return expr[RHS];
+    }
+}
+
+AstNode *BinaryExpr::getOperator()
+{
+    return oper;
+}
+
 LiteralExpr::LiteralExpr(Token literalRef)
-    :literal{literalRef}
+    :expr{literalRef}
 {
     type = LITERAL;
 }
 
 Token LiteralExpr::getToken() const
 {
-    return literal;
+    return expr;
 }
 
 UnaryOper::UnaryOper(Token operToken)

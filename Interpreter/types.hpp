@@ -54,7 +54,7 @@ typedef struct Error
     }
 }Error;
 
-constexpr const Error NOERROR = {OK, ""};
+constexpr const Error NOERROR = {OK, "NOERROR"};
 
 inline void printError(const Error& errorRef)
 {

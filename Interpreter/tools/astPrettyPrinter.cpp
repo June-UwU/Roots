@@ -68,28 +68,28 @@ void prettyPrint(AstNode* expr)
             case EXPR:
             {
                 Expr* rExpr = reinterpret_cast<Expr*>(aExpr);
-                queue.push_back(rExpr->expr);
+                queue.push_back(rExpr->getExpr());
                 level++;
             }break;
             case BINARY_EXPR:
             {
                 BinaryExpr* bExpr = reinterpret_cast<BinaryExpr*>(aExpr);
-                queue.push_back(bExpr->leftExpr);
-                queue.push_back(bExpr->binaryOper);
-                queue.push_back(bExpr->rightExpr);
+                queue.push_back(bExpr->getExpr(LHS));
+                queue.push_back(bExpr->getOperator());
+                queue.push_back(bExpr->getExpr(RHS));
                 level++;
             }break;
             case UNARY_EXPR:
             {
                 UnaryExpr* uExpr = reinterpret_cast<UnaryExpr*>(aExpr);
-                queue.push_back(uExpr->unaryOper);
-                queue.push_back(uExpr->expr);
+                queue.push_back(uExpr->getOperator());
+                queue.push_back(uExpr->getExpr());
                 level++;
             }break;
             case GROUP:
             {
                 Group* group = reinterpret_cast<Group*>(aExpr);
-                queue.push_back(group->expr);
+                queue.push_back(group->getExpr());
                 level++;
             }break;
             default:
