@@ -65,12 +65,6 @@ void prettyPrint(AstNode* expr)
         printNode(aExpr,level);
         switch(aExpr->getType())
         {
-            case EXPR:
-            {
-                Expr* rExpr = reinterpret_cast<Expr*>(aExpr);
-                queue.push_back(rExpr->getExpr());
-                level++;
-            }break;
             case BINARY_EXPR:
             {
                 BinaryExpr* bExpr = reinterpret_cast<BinaryExpr*>(aExpr);

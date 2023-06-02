@@ -54,11 +54,6 @@ RootObject* interpret(const Ast* ast)
                 runtimeStack.push(uExpr->getOperator());
                 runtimeStack.push(uExpr->getExpr());
             }break;
-            case EXPR:
-            {
-                Expr* bExpr = reinterpret_cast<Expr*>(expr);
-                runtimeStack.push(bExpr->getExpr());
-            }break;
             case LITERAL:
             {
                 if(REGISTER_UNINITIALIZED == R1State)

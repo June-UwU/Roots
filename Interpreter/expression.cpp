@@ -7,20 +7,15 @@ constexpr const char* EXPRTYPE_STR[EXPRTYPE]
     "EXPR_GROUP","EXPR_UNARY","EXPR_BINARY"
 };
 
-ExprType AbstractExpr::getType() const
+StmtType AbstractStmt::getType() const
 {
     return type;
 }
 
-Expr::Expr(AstNode* sExpr, ExprType exprType)
-{
-    expr = sExpr;
-    type = exprType;
-}
 
-AstNode *Expr::getExpr()
+ExprType AbstractExpr::getType() const
 {
-    return expr;
+    return type;
 }
 
 Group::Group(Token lhs, AstNode* midExpr, Token rhs)

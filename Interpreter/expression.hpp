@@ -3,8 +3,6 @@
 #include "token.hpp"
 
 class AbstractExpr;
-class ExprVisitor;
-class Expr;
 class Group;
 class UnaryExpr;
 class BinaryExpr;
@@ -38,25 +36,36 @@ typedef enum Placement
     PLACEMENT
 }Placement;
 
+typedef enum StmtType
+{
+    STUDSTMT = 0x0, // TODO : change this to whatever is required
+    STMTTYPE
+}StmtType;
+
 bool isValidOper(Token token, ExprType type);
 const char* getExprTypeString(ExprType type);
 
+class AbstractStmt
+{
+    public:
+        StmtType getType() const;
+    protected:
+        StmtType type;
+};
+
+class VarDeclStmt : public AbstractStmt
+{
+    public:
+    private:
+};
+
+// basic expression primitives
 class AbstractExpr
 {
     public:
         ExprType getType() const;
     protected:
         ExprType type;
-};
-
-class Expr : public AbstractExpr
-{
-    public:
-        Expr(AstNode* sExpr, ExprType type);
-        ~Expr(); 
-        AstNode* getExpr();
-    private:
-        AstNode* expr;
 };
 
 class Group : public AbstractExpr
