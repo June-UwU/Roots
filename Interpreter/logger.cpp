@@ -6,7 +6,7 @@
 
 constexpr const u32 BUFFERSIZE = 32000;
 static char OUTBUFFER[BUFFERSIZE];
-static const char* LOGHEADERS[LOGLEVEL] 
+static const char* LOGHEADERS[(u64)Loglevel::SIZE] 
 {
     "INFO   : ",
     "WARN   : ",

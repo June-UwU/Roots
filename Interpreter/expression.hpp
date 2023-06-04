@@ -1,7 +1,18 @@
 #pragma once
 #include "types.hpp"
 #include "token.hpp"
+#include "runtime/rootObjects.hpp"
+#include <map>
 
+//Statement
+class AbstractStmt;
+class VariableDecl;
+class IfStmt;
+class WhileStmt;
+class ForStmt;
+class Block;
+
+// AstNode
 class AbstractExpr;
 class Group;
 class UnaryExpr;
@@ -12,6 +23,7 @@ class UnaryOper;
 
 using Ast = AbstractExpr;
 using AstNode = AbstractExpr;
+using Statement = AbstractStmt;
 constexpr const u32 PAIR = 2;
 typedef enum ExprType
 {
@@ -38,7 +50,11 @@ typedef enum Placement
 
 typedef enum StmtType
 {
-    STUDSTMT = 0x0, // TODO : change this to whatever is required
+    BLOCK_STMT = 0x0,
+    IF_STMT,
+    EXPRESSION_STMT,
+    WHILE_STMT,
+    FOR_STMT,
     STMTTYPE
 }StmtType;
 
@@ -49,14 +65,72 @@ class AbstractStmt
 {
     public:
         StmtType getType() const;
+        Block* getOwner() const;
+        void addNextStmt(Statement* stmt);
+        AbstractStmt* getNextStmt() const;
     protected:
+        Statement* next = nullptr;
+        Block* ownerBlock = nullptr;
         StmtType type;
 };
 
-class VarDeclStmt : public AbstractStmt
+class Block : public  AbstractStmt
 {
     public:
+        Block(Statement* stmts, Block* owner);
+        void addVariable(std::string id, RootObject* obj);
+        RootObject* getObject(std::string id);
     private:
+        Block* owner;
+        std::map<std::string, RootObject*> env;
+        Statement* list;
+
+};
+
+class IfSmt : public AbstractStmt
+{
+    public:
+        IfSmt(AstNode* predicate, Block* block, Block* owner);
+        AstNode* getPredicate() const;
+        Block* getStmt() const;
+    private:
+        AstNode* predicate;
+        Block* stmtBlock;
+};
+
+class Expression : public AbstractStmt
+{
+    public:
+        Expression(AstNode* expr, Block* owner);
+        AstNode* getExpr() const;
+    private:
+        AstNode* expr;
+};
+
+class WhileStmt : public AbstractStmt
+{
+    public:
+        WhileStmt(AstNode* predicate, Block* block, Block* owner);
+        AstNode* getPredicate() const;
+        Block* getBlock() const;
+    private:
+        AstNode* predicate;
+        Block* stmtBlock;
+};
+
+class ForStmt : public AbstractStmt
+{
+    public:
+        ForStmt(AstNode* init, AstNode* pred, AstNode* update, Block* block, Block* owner);
+        AstNode* getInit() const;
+        AstNode* getPredicate() const;
+        AstNode* getUpdate() const;
+        Block* getBlock() const;
+    private:
+        AstNode* init;
+        AstNode* predicate;
+        AstNode* update;
+        Block* stmtBlock;
 };
 
 // basic expression primitives

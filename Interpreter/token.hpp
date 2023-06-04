@@ -6,16 +6,7 @@
 typedef enum TokenType
 {
     // KEYWORDS
-    INT8 = 0x0,
-    INT16,
-    INT32,
-    INT64,
-    UINT8,
-    UINT16,
-    UINT32,
-    UINT64,
-    FLOAT32,
-    FLOAT64,
+    VAR = 0x0,
     CLASS,
     TRUE,
     FALSE,
@@ -25,13 +16,12 @@ typedef enum TokenType
     SUPER,
     RETURN,
     NONE,
+    WHILE,
     FOR,
     IF,
     // LITERALS
     STRING,
     IDENTIFIER,
-    UNSIGNED_INTEGER_NUMBER,
-    SIGNED_INTEGER_NUMBER,
     FLOAT_NUMBER,
     // CHARACTER TOKENS
     BANG,
@@ -61,7 +51,7 @@ typedef enum TokenType
     TOKENTYPE
 }TokenType;
 
-using Literal = std::variant<s32,u32,f32,std::string>; 
+using Literal = std::variant<f64,std::string>; 
 
 class Token
 {

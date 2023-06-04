@@ -4,14 +4,20 @@
 using ostream = std::ostringstream;
 constexpr const char* OBJECT_TYPE_STR[OBJECT_TYPE] = 
 {
-    "ROOT_OBJECT","BOOLEAN_OBJECT","FLOAT_OBJECT",
-    "SIGNED_INTEGER_OBJECT","UNSIGNED_INTEGER_OBJECT","STRING_OBJECT"
+    "NONE_OBJECT","BOOLEAN_OBJECT","FLOAT_OBJECT","STRING_OBJECT"
 };
 
 
 ObjectType RootObject::getType() const
 {
     return type;
+}
+
+std::string RootObject::toString() const
+{
+    ostream stream;
+    stream << OBJECT_TYPE_STR[type];
+    return stream.str();    
 }
 
 BooleanObject::BooleanObject(bool boolValue)
@@ -37,7 +43,7 @@ void BooleanObject::setValue(bool booleanValue)
     value = booleanValue;
 }
 
-FloatObject::FloatObject(f32 floatValue)
+FloatObject::FloatObject(f64 floatValue)
     :value{floatValue}
 {
     type = FLOAT_OBJECT;
@@ -50,60 +56,14 @@ std::string FloatObject::toString() const
     return stream.str();
 }
 
-f32 FloatObject::getValue() const
+f64 FloatObject::getValue() const
 {
     return value;
 }
 
-void FloatObject::setValue(f32 floatValue)
+void FloatObject::setValue(f64 floatValue)
 {
     value = floatValue;
-}
-
-IntObject::IntObject(s32 intValue)
-    :value{intValue}
-{
-    type = SIGNED_INTEGER_OBJECT;
-}
-
-std::string IntObject::toString() const
-{
-    ostream stream;
-    stream << OBJECT_TYPE_STR[type] << " : " << value;
-    return stream.str();
-}
-
-s32 IntObject::getValue() const
-{
-    return value;
-}
-
-void IntObject::setValue(s32 intValue)
-{
-    value = intValue;
-}
-
-UintObject::UintObject(u32 uintValue)
-    :value{uintValue}
-{
-    type = UNSIGNED_INTEGER_OBJECT;
-}
-    
-std::string UintObject::toString() const
-{
-    ostream stream;
-    stream << OBJECT_TYPE_STR[type] << " : " << value;
-    return stream.str();
-}
-        
-u32 UintObject::getValue() const
-{
-    return value;
-}
-
-void UintObject::setValue(u32 uintValue)
-{
-    value = uintValue;
 }
 
 StringObject::StringObject(std::string stringValue)

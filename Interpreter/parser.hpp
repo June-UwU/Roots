@@ -6,4 +6,4 @@
 #include <vector>
 
 
-AstNode* parse(ArenaAllocator& allocator,std::vector<Token>& tokenList);
+Statement* parse(ArenaAllocator& allocator,std::vector<Token>& tokenList, u32& currentIndex, Block* owner);

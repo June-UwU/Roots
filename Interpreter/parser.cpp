@@ -1,11 +1,16 @@
 #include "parser.hpp"
 #include "logger.hpp"
 #include <memory>
-// TODO : clean up here and expression
+#include "roots.hpp"
 
 // helpers
 bool isEnd(std::vector<Token>& tokenList, u32& index);
-
+Statement* parseWhile(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
+Statement* parseFor(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
+Statement* parseIf(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
+Statement* parseBlock(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
+Statement* parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
+Statement* parseExpr(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
 // Grammar rules for the RD parser.
 AstNode* expression(ArenaAllocator& allocator, std::vector<Token>& tokenList,u32& index);
 AstNode* equality(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
@@ -15,10 +20,155 @@ AstNode* factor(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& i
 AstNode* unary(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
 AstNode* primary(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index);
 
-AstNode* parse(ArenaAllocator& allocator, std::vector<Token>& tokenList)
+Statement* parse(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
 {
-    u32 currentIndex = 0;
-    return expression(allocator, tokenList, currentIndex);
+    Statement* stmt = nullptr;
+    allocator.reset();
+    switch (tokenList[currentIndex].getTokenType())
+    {
+    case WHILE:
+        currentIndex++;
+        stmt = parseWhile(allocator,tokenList,currentIndex,owner);
+        break;
+    case FOR:
+        currentIndex++;
+        stmt = parseFor(allocator,tokenList,currentIndex,owner);
+        break;
+    case IF:
+        currentIndex++;
+        stmt = parseIf(allocator,tokenList,currentIndex,owner);
+        break;
+    case LEFT_BRACE:
+        currentIndex++;
+        stmt = parseBlock(allocator,tokenList,currentIndex,owner);
+        break;
+    case VAR:
+        currentIndex++;
+        stmt = parseVariable(allocator,tokenList,currentIndex,owner);
+        break; 
+    default:
+        stmt = parseExpr(allocator,tokenList,currentIndex,owner);
+        break;
+    }
+    return stmt;
+}
+
+Statement* parseWhile(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex)
+{
+    if(tokenList[currentIndex].getTokenType() != LEFT_BRACE)
+    {
+        LOG_ERROR("expected a ( ");
+        // TODO : panic..!!
+    }
+    else
+    {
+        currentIndex++;
+    }
+    // TODO : parse if
+
+}
+
+Statement* parseFor(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex)
+{
+
+}
+
+Statement* parseIf(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex)
+{
+
+}
+
+Statement* parseBlock(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
+{
+    Block* block = (Block*)allocator.allocate(sizeof(Block));
+    block = new(block) Block(nullptr,owner);
+    Statement* stmt = nullptr;
+    // case for empty block
+    if(tokenList[currentIndex].getTokenType() != RIGHT_BRACE)
+    {
+        stmt = parse(allocator,tokenList,currentIndex,block);
+    }
+    else
+    {
+        return block;
+    }
+    while(tokenList[currentIndex].getTokenType() != RIGHT_BRACE)
+    {
+        Statement* tmpStmt = parse(allocator,tokenList,currentIndex,block);
+        stmt->addNextStmt(tmpStmt);
+        stmt = stmt->getNextStmt();
+    }
+    block->addNextStmt(stmt);
+    return block;
+}
+
+Statement* parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
+{
+    AstNode* id = expression(allocator,tokenList,currentIndex);
+    AstNode* value  = nullptr;
+    if(tokenList[currentIndex].getTokenType() == EQUAL)
+    {
+        currentIndex++;
+        value = expression(allocator,tokenList,currentIndex);
+    }
+    if(id->getType() == LITERAL)
+    {
+        LiteralExpr* literal = (LiteralExpr*) id;
+        Token token = literal->getToken();
+        if(token.getTokenType() != IDENTIFIER)
+        {
+            LOG_ERROR("invalid identifier");
+        }
+        if(value != nullptr)
+        {
+            if(value->getType() != LITERAL)
+            {
+                LOG_WARN("invalid assignment, value is not a literal");
+                // TODO : AHH PANIC...!!!
+            }
+            else
+            {
+                Token valueToken = ((LiteralExpr*)value)->getToken();
+                RootObject* obj = nullptr;
+// TODO : this switch case is mem leak bonanza..good luck fixing it.
+                switch (valueToken.getTokenType())
+                {
+                case FLOAT_NUMBER:
+                    obj = new FloatObject(std::get<f64>(valueToken.getLiteral()));
+                    owner->addVariable(token.getLexeme(),obj);
+                    break;
+                case STRING:
+                    obj = new StringObject(std::get<std::string>(valueToken.getLiteral()));
+                    owner->addVariable(token.getLexeme(),obj);
+                    break;
+                case TRUE:
+                    obj = new BooleanObject(true);
+                    owner->addVariable(token.getLexeme(),obj);
+                    break;
+                case FALSE:
+                    obj = new BooleanObject(false);
+                    owner->addVariable(token.getLexeme(),obj);
+                    break;
+                default:
+                    owner->addVariable(token.getLexeme(),getNullPointer());
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        LOG_ERROR("invalid identifier");
+    }
+    parse(allocator,tokenList,currentIndex,owner);
+}
+
+Statement* parseExpr(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
+{
+    AstNode* expr = expression(allocator,tokenList,currentIndex);
+    Statement* stmt = (Statement*)allocator.allocate(sizeof(Expression));
+    stmt = new(stmt) Expression(expr,owner);
+    return stmt;
 }
 
 AstNode* expression(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& index)
@@ -173,8 +323,6 @@ AstNode* primary(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& 
             case TRUE:
             case FALSE:
             case STRING:
-            case SIGNED_INTEGER_NUMBER:
-            case UNSIGNED_INTEGER_NUMBER:
             {
                 expr = (AstNode*) allocator.allocate(sizeof(LiteralExpr));
                 expr = new (expr) LiteralExpr(tokenList[index]);

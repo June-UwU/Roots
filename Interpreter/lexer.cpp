@@ -225,53 +225,19 @@ Error tokenize(std::vector<Token>& tokenList, std::string source, std::string fi
                     }
                     std::string idOrKeyword = source.substr(startIndex,currentIndex);
                     TokenType token = findKeywordOrIdentifier(idOrKeyword);
+                    if(tokenList[tokenList.size() - 1].getTokenType() == VAR)
+                    {
+                        token = IDENTIFIER;
+                    }
                     tokenList.emplace_back(token,idOrKeyword,Literal(),line,file);
                 }
                 else if(isNumber(source[currentIndex]))
                 {
                     startIndex = currentIndex;
-                    bool checkFlag = true;
-                    TokenType token = SIGNED_INTEGER_NUMBER;
-                    while(checkFlag)
-                    {
-                        if(isNumber(source[currentIndex]))
-                        {
-                            currentIndex++;
-                        }
-                        else if('.' == source[currentIndex])
-                        {
-                            token = FLOAT_NUMBER;
-                            currentIndex++;
-                        }
-                        else if('u' == source[currentIndex])
-                        {
-                            token = UNSIGNED_INTEGER_NUMBER;
-                            currentIndex++;
-                        }
-                        else 
-                        {
-                            checkFlag = false;
-                        }
-                    }
+                    TokenType token = FLOAT_NUMBER;
                     string = source.substr(startIndex,currentIndex);
-                    switch(token)
-                    {
-                        case SIGNED_INTEGER_NUMBER:
-                            {
-                                s32 intValue = std::stoi(string);
-                                literal = Literal(intValue);
-                            }break;
-                        case FLOAT_NUMBER:
-                            {
-                                f32 floatValue = std::stof(string);
-                                literal = Literal(floatValue);
-                            }break;
-                        case UNSIGNED_INTEGER_NUMBER:
-                            {
-                                u32 uintValue = std::stoul(string);
-                                literal = Literal(uintValue);
-                            }break;
-                    }
+                    f64 floatValue = std::stof(string);
+                    literal = Literal(floatValue);
                     tokenList.emplace_back(token,string,literal,line,file);
                 }
                 else

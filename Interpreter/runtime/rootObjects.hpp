@@ -4,11 +4,9 @@
 
 typedef enum ObjectType
 {
-    ROOT_OBJECT = 0x0,
+    NONE_OBJECT = 0x0,
     BOOLEAN_OBJECT,
     FLOAT_OBJECT,
-    SIGNED_INTEGER_OBJECT,
-    UNSIGNED_INTEGER_OBJECT,
     STRING_OBJECT,
 
     OBJECT_TYPE
@@ -20,9 +18,9 @@ class RootObject
 {
     public:
         ObjectType getType() const;
-        virtual std::string toString() const = 0;
+        std::string toString() const;
     protected:
-        ObjectType type;
+        ObjectType type = NONE_OBJECT;
 };
 
 class BooleanObject : public RootObject
@@ -39,34 +37,12 @@ class BooleanObject : public RootObject
 class FloatObject : public RootObject
 {
     public:
-        FloatObject(f32 floatValue);
+        FloatObject(f64 floatValue);
         std::string toString() const;
-        f32 getValue() const;
-        void setValue(f32 floatValue);
+        f64 getValue() const;
+        void setValue(f64 floatValue);
     private:
-        f32 value;
-};
-
-class IntObject : public RootObject
-{
-    public:
-        IntObject(s32 intValue);
-        std::string toString() const;
-        s32 getValue() const;
-        void setValue(s32 intValue);
-    private:
-        s32 value;
-};
-
-class UintObject : public RootObject
-{
-    public:
-        UintObject(u32 uintValue);
-        std::string toString() const;
-        u32 getValue() const;
-        void setValue(u32 uintValue);
-    private:
-        u32 value;
+        f64 value;
 };
 
 class StringObject : public RootObject
@@ -79,4 +55,3 @@ class StringObject : public RootObject
     private:
         std::string value;
 };
-

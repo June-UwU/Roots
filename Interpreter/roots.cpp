@@ -2,23 +2,20 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "logger.hpp"
-#include "astPrettyPrinter.hpp"
-#include "runtime/interpreter.hpp"
-#include "memoryUnits.hpp"
 #include <iostream>
 #include <cstring>
 
+static RootObject* NULLPTR = nullptr; 
 constexpr const char* EXITCMD = "exit";
 
 void printNewTokenInteractive(const std::vector<Token>& tokenList,u32 currentIndex);
 
 Error runInteractive()
 {
+    NULLPTR = new RootObject();
     std::cout << "Roots Interactive Shell\n";
     std::vector<Token> tokenList;
     u32 tokenListIndex = 0;
-    AstNode* ast = nullptr;
-    ArenaAllocator astArena;
     while(true)
     {
         std::string statement;
@@ -31,39 +28,9 @@ Error runInteractive()
         lexInteractive(tokenList,statement);
         run();
         tokenList.pop_back();
-        ast = parse(astArena,tokenList);
-        astPrettyPrint(ast);
-        RootObject* retObj = interpret(ast);
-        switch (retObj->getType())
-        {
-        case BOOLEAN_OBJECT:
-        {
-            BooleanObject* obj = reinterpret_cast<BooleanObject*>(retObj);
-            std::cout << "Evaluation : "<<obj->getValue() << "\n";
-        }break;
-        case FLOAT_OBJECT:
-        {
-            FloatObject* obj = reinterpret_cast<FloatObject*>(retObj);
-            std::cout << "Evaluation : "<<obj->getValue() << "\n";
-        }break;
-        case SIGNED_INTEGER_OBJECT:
-        {
-            IntObject* obj = reinterpret_cast<IntObject*>(retObj);
-            std::cout << "Evaluation : "<<obj->getValue() << "\n";
-        }break;
-        case UNSIGNED_INTEGER_OBJECT:
-        {
-            UintObject* obj = reinterpret_cast<UintObject*>(retObj);
-            std::cout << "Evaluation : "<<obj->getValue() << "\n";
-        }break;
-        default:
-            // LOG ERROR...?
-            break;
-        }
-        astArena.reset();
         tokenList.clear();
     }
-    delete ast;
+    delete NULLPTR;
     return NOERROR;
 }
 Error runFiles(const std::string filePath)
