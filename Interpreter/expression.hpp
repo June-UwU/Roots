@@ -87,10 +87,10 @@ class Block : public  AbstractStmt
 
 };
 
-class IfSmt : public AbstractStmt
+class IfStmt : public AbstractStmt
 {
     public:
-        IfSmt(AstNode* predicate, Block* block, Block* owner);
+        IfStmt(AstNode* predicate, Block* block, Block* owner);
         AstNode* getPredicate() const;
         Block* getStmt() const;
     private:

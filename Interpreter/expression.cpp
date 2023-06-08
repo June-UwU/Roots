@@ -23,6 +23,11 @@ void AbstractStmt::addNextStmt(Statement* stmt)
     next = stmt;
 }
 
+AbstractStmt* AbstractStmt::getNextStmt() const
+{
+    return next;
+} 
+
 Block::Block(Statement* stmt,Block* owner)
     :list{stmt}
 {
@@ -59,7 +64,7 @@ RootObject* Block::getObject(std::string id)
     return nullptr;
 }
 
-IfSmt::IfSmt(AstNode* pred, Block* block, Block* owner)
+IfStmt::IfStmt(AstNode* pred, Block* block, Block* owner)
     :predicate{pred}
     ,stmtBlock{block}
 {
@@ -67,12 +72,12 @@ IfSmt::IfSmt(AstNode* pred, Block* block, Block* owner)
     ownerBlock = owner;
 }
 
-AstNode* IfSmt::getPredicate() const
+AstNode* IfStmt::getPredicate() const
 {
     return predicate;
 }
 
-Block* IfSmt::getStmt() const
+Block* IfStmt::getStmt() const
 {
     return stmtBlock;
 }

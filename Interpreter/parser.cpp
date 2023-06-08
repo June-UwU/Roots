@@ -9,7 +9,7 @@ Statement* parseWhile(ArenaAllocator& allocator, std::vector<Token>& tokenList, 
 Statement* parseFor(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
 Statement* parseIf(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
 Statement* parseBlock(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
-Statement* parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
+void parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
 Statement* parseExpr(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner);
 // Grammar rules for the RD parser.
 AstNode* expression(ArenaAllocator& allocator, std::vector<Token>& tokenList,u32& index);
@@ -44,7 +44,8 @@ Statement* parse(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& 
         break;
     case VAR:
         currentIndex++;
-        stmt = parseVariable(allocator,tokenList,currentIndex,owner);
+        parseVariable(allocator,tokenList,currentIndex,owner);
+        parse(allocator,tokenList,currentIndex,owner);
         break; 
     default:
         stmt = parseExpr(allocator,tokenList,currentIndex,owner);
@@ -53,29 +54,81 @@ Statement* parse(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& 
     return stmt;
 }
 
-Statement* parseWhile(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex)
+Statement* parseWhile(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
 {
-    if(tokenList[currentIndex].getTokenType() != LEFT_BRACE)
+    WhileStmt* whileStmt = (WhileStmt*)allocator.allocate(sizeof(WhileStmt));
+    AstNode* predicate = expression(allocator,tokenList,currentIndex);;
+    Block* whileBlock = (Block*)parseBlock(allocator,tokenList,currentIndex,owner);
+    whileStmt = new(whileStmt) WhileStmt(predicate,whileBlock,owner);
+    return whileStmt;
+}
+
+Statement* parseFor(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
+{
+    ForStmt* forStmt = (ForStmt*)allocator.allocate(sizeof(ForStmt));
+    AstNode* forInit = nullptr;
+    AstNode* predicate = nullptr;
+    AstNode* forUpdate = nullptr;
+    Block* forBlock = nullptr;
+    if(tokenList[currentIndex].getTokenType() != LEFT_PAREN )
     {
-        LOG_ERROR("expected a ( ");
-        // TODO : panic..!!
+        LOG_ERROR("expected an initializer list for the for loop");
+    }
+    else
+    {
+        currentIndex++;
+        forInit = expression(allocator,tokenList,currentIndex);
+    }
+    
+    if(tokenList[currentIndex].getTokenType() != SEMI_COLON)
+    {
+        LOG_ERROR("expected a semi colon after the initializing statement");
+    }
+    else
+    {
+        currentIndex++;
+        predicate = expression(allocator,tokenList,currentIndex);
+    }
+    
+    if(tokenList[currentIndex].getTokenType() != SEMI_COLON)
+    {
+        LOG_ERROR("expected a semi colon after the initializing statement");
+    }
+    else
+    {
+        currentIndex++;
+        forUpdate = expression(allocator,tokenList,currentIndex);
+    }
+
+    if(tokenList[currentIndex].getTokenType() != RIGHT_PAREN)
+    {
+        LOG_ERROR("for loop initializer not properly terminated");
     }
     else
     {
         currentIndex++;
     }
-    // TODO : parse if
 
+    if(tokenList[currentIndex].getTokenType() == LEFT_BRACE)
+    {
+        currentIndex++;
+        forBlock = (Block*) parseBlock(allocator,tokenList,currentIndex,owner);
+    }
+    else
+    {
+        LOG_ERROR("unknown token for initializing a for loop block");
+    }
+    forStmt = new(forStmt) ForStmt(forInit,predicate,forUpdate,forBlock,owner);
+    return forStmt;
 }
 
-Statement* parseFor(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex)
+Statement* parseIf(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
 {
-
-}
-
-Statement* parseIf(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex)
-{
-
+    IfStmt* ifStmt = (IfStmt*)allocator.allocate(sizeof(IfStmt));
+    AstNode* prediate = expression(allocator,tokenList,currentIndex);
+    Block* ifBlock = (Block*)parseBlock(allocator,tokenList,currentIndex,owner);
+    ifStmt = new(ifStmt) IfStmt(prediate,ifBlock,owner);
+    return ifStmt;
 }
 
 Statement* parseBlock(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
@@ -102,7 +155,7 @@ Statement* parseBlock(ArenaAllocator& allocator, std::vector<Token>& tokenList, 
     return block;
 }
 
-Statement* parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
+void parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
 {
     AstNode* id = expression(allocator,tokenList,currentIndex);
     AstNode* value  = nullptr;
@@ -111,6 +164,7 @@ Statement* parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenLis
         currentIndex++;
         value = expression(allocator,tokenList,currentIndex);
     }
+
     if(id->getType() == LITERAL)
     {
         LiteralExpr* literal = (LiteralExpr*) id;
@@ -155,12 +209,15 @@ Statement* parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenLis
                 }
             }
         }
+        else
+        {
+            LOG_ERROR("no value assigned!");
+        }
     }
     else
     {
         LOG_ERROR("invalid identifier");
     }
-    parse(allocator,tokenList,currentIndex,owner);
 }
 
 Statement* parseExpr(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)

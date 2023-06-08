@@ -26,7 +26,8 @@ Error runInteractive()
             break;
         }
         lexInteractive(tokenList,statement);
-        run();
+        printNewTokenInteractive(tokenList,0);
+        //run();
         tokenList.pop_back();
         tokenList.clear();
     }
@@ -57,4 +58,9 @@ void printNewTokenInteractive(const std::vector<Token>& tokenList, u32 currentIn
     {
         LOG_INFO("%s",tokenList[i].toString().c_str());
     }
+}
+
+RootObject* getNullPointer()
+{
+    return NULLPTR;
 }

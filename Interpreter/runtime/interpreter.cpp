@@ -3,6 +3,7 @@
 
 RootObject* interpret(const Ast* ast)
 {
-    
+    // TODO : work on interpreter
+    return nullptr;
 }
 

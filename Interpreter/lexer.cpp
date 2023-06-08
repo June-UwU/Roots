@@ -131,7 +131,7 @@ Error tokenize(std::vector<Token>& tokenList, std::string source, std::string fi
                     }
                 }
                 currentIndex++;
-                string = source.substr(startIndex,currentIndex);
+                string = source.substr(startIndex,currentIndex - startIndex);
                 literal = Literal{string};
                 tokenList.emplace_back(STRING,string,literal,line,file);
                 break;
@@ -219,23 +219,23 @@ Error tokenize(std::vector<Token>& tokenList, std::string source, std::string fi
                 if(isAlpha(source[currentIndex]) || ('_' == source[currentIndex]))
                 {
                     startIndex = currentIndex;
-                    while(isIdentifierSymbol(source[currentIndex]))
+                    while(isIdentifierSymbol(source[currentIndex]) && source[currentIndex] != ' ')
                     {
                         currentIndex++;
                     }
-                    std::string idOrKeyword = source.substr(startIndex,currentIndex);
+                    std::string idOrKeyword = source.substr(startIndex,currentIndex - startIndex);
                     TokenType token = findKeywordOrIdentifier(idOrKeyword);
-                    if(tokenList[tokenList.size() - 1].getTokenType() == VAR)
-                    {
-                        token = IDENTIFIER;
-                    }
                     tokenList.emplace_back(token,idOrKeyword,Literal(),line,file);
                 }
                 else if(isNumber(source[currentIndex]))
                 {
                     startIndex = currentIndex;
+                    while(isNumber(source[currentIndex]))
+                    {
+                        currentIndex++;
+                    }
                     TokenType token = FLOAT_NUMBER;
-                    string = source.substr(startIndex,currentIndex);
+                    string = source.substr(startIndex,currentIndex - startIndex);
                     f64 floatValue = std::stof(string);
                     literal = Literal(floatValue);
                     tokenList.emplace_back(token,string,literal,line,file);
