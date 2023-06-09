@@ -3,10 +3,15 @@
 
 typedef enum Ins
 {
-    INS_NOP = 0x0,
-    INS_RET,
-
-    INT_SIZE
+    INS_RET = 0x0,
+    
+    INS_END,
+    INS_SIZE,
 }Ins;
+
+constexpr const char* INS_STR[INS_SIZE]
+{
+    "ret","end"
+};
 
 typedef u8 ByteCode;

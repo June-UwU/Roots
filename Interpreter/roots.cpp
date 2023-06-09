@@ -2,6 +2,9 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "logger.hpp"
+#include "runtime/compiler.hpp"
+#include "runtime/decompiler.hpp"
+#include "runtime/virtualMachine.hpp"
 #include <iostream>
 #include <cstring>
 
@@ -10,9 +13,14 @@ constexpr const char* EXITCMD = "exit";
 
 void printNewTokenInteractive(const std::vector<Token>& tokenList,u32 currentIndex);
 
+#include "runtime/instructions.hpp"
+static ByteCode code[] = {INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,
+INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_END};
+
 Error runInteractive()
 {
     NULLPTR = new RootObject();
+    initializeVM();
     std::cout << "Roots Interactive Shell\n";
     std::vector<Token> tokenList;
     u32 tokenListIndex = 0;
@@ -31,6 +39,10 @@ Error runInteractive()
         tokenList.pop_back();
         tokenList.clear();
     }
+    VM->loadCode(code);
+    decompile(code,CONSOLE_DUMP);
+    decompile(code,TEXT_FILE);
+    destroyVM();
     delete NULLPTR;
     return NOERROR;
 }

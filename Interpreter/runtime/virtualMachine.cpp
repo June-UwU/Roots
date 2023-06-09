@@ -1,5 +1,17 @@
 #include "virtualMachine.hpp"
 
+RootVM* VM = nullptr;
+
+void initializeVM()
+{
+    VM = new RootVM();
+}
+
+void destroyVM()
+{
+    delete VM;
+}
+
 void runByteCode(RootVM* byteCode);
 
 RootVM::RootVM()

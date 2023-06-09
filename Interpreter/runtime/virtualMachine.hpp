@@ -3,28 +3,7 @@
 #include <variant>
 #include <stack>
 
-using Data = std::variant<s8,s16,s32,s64,u8,u16,u32,u64,std::string>; 
-
-typedef enum ValueType
-{
-    INT8_T = 0x0,
-    INT16_T,
-    INT32_T,
-    INT64_T,
-    UINT8_T,
-    UINT16_T,
-    UINT32_T,
-    UINT64_T,
-    FLOAT32_T,
-    FLOAT64_T,
-    STRING
-}ValueType;
-
-typedef struct Value
-{
-    ValueType type;
-    Data data;
-}Value;
+using Value = f64;
 
 class RootVM
 {
@@ -42,3 +21,7 @@ class RootVM
         std::stack<Value> stack;
         u8* byteCode;
 };
+
+extern RootVM* VM;
+void initializeVM();
+void destroyVM(); 
