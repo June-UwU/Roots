@@ -1,6 +1,10 @@
 #include "virtualMachine.hpp"
+#include "instructions.hpp"
+#include "..\logger.hpp"
 
 RootVM* VM = nullptr;
+u8 checkOperFlag(u8 code);
+
 
 void initializeVM()
 {
@@ -12,35 +16,26 @@ void destroyVM()
     delete VM;
 }
 
-void runByteCode(RootVM* byteCode);
-
-RootVM::RootVM()
-    :byteCode{nullptr}
-{}
-
-void RootVM::loadCode(u8* code)
+void push(RootObject* value)
 {
-    byteCode = code;
+    VM->stack.push(value);
 }
 
-void RootVM::execute()
+RootObject* pop()
 {
-    runByteCode(this);
-}
-
-void RootVM::push(Value value)
-{
-    stack.push(value);
-}
-
-Value RootVM::pop()
-{
-    Value ret = stack.top();
-    stack.pop();
+    if(VM->stack.empty()) 
+    {
+        LOG_ERROR("POP called on empty VM stack");
+        return nullptr;
+    }
+    RootObject* ret = VM->stack.top();
+    VM->stack.pop();
     return ret;
 }
 
-void runByteCode(RootVM* byteCode)
+void dumpVMState() 
 {
-    // TODO : do our logic here
+    LOG_INFO("\n\n\nRegisters State \n IP : %ld",VM->ip);    
+    //trap for debug purpose
+    __builtin_trap();
 }

@@ -19,6 +19,9 @@ typedef uint64_t    u64;
 typedef float       f32;
 typedef double      f64;
 
+// POINTER SIZE
+constexpr const u64 PTR_SIZE = sizeof(void*);
+
 typedef enum ErrorCode
 {
     OK = 0x0,

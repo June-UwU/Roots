@@ -1,27 +1,22 @@
 #pragma once
 #include "../types.hpp"
+#include "rootObjects.hpp"
 #include <variant>
 #include <stack>
+#include <map>
 
-using Value = f64;
-
-class RootVM
+typedef struct RootVM
 {
-    public:
-        RootVM();
-        RootVM(const RootVM&) = delete;
-        RootVM& operator=(const RootVM&) = delete;
-        RootVM(RootVM&&) = delete;
-        RootVM& operator=(RootVM&&) = delete;
-        void loadCode(u8* code);
-        void execute();
-        void push(Value value);
-        Value pop();
-    private:
-        std::stack<Value> stack;
-        u8* byteCode;
-};
+    std::stack<RootObject*> stack;
+    std::map<std::string,RootObject*> globals;
+    
+    u8* ip;
+}RootVM;
 
-extern RootVM* VM;
 void initializeVM();
 void destroyVM(); 
+void push(RootObject* obj);
+RootObject* pop();
+void dumpVMState();
+
+extern RootVM* VM;

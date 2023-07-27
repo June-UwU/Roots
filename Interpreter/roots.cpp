@@ -4,6 +4,7 @@
 #include "logger.hpp"
 #include "runtime/compiler.hpp"
 #include "runtime/decompiler.hpp"
+#include "runtime/interpreter.hpp"
 #include "runtime/virtualMachine.hpp"
 #include <iostream>
 #include <cstring>
@@ -13,10 +14,6 @@ constexpr const char* EXITCMD = "exit";
 
 void printNewTokenInteractive(const std::vector<Token>& tokenList,u32 currentIndex);
 
-#include "runtime/instructions.hpp"
-static ByteCode code[] = {INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,
-INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_RET,INS_END};
-
 Error runInteractive()
 {
     NULLPTR = new RootObject();
@@ -24,6 +21,8 @@ Error runInteractive()
     std::cout << "Roots Interactive Shell\n";
     std::vector<Token> tokenList;
     u32 tokenListIndex = 0;
+#define VM_TEST 1
+#if VM_TEST == 0
     while(true)
     {
         std::string statement;
@@ -39,7 +38,12 @@ Error runInteractive()
         tokenList.pop_back();
         tokenList.clear();
     }
-    VM->loadCode(code);
+#endif
+    #include "runtime/instructions.hpp"
+    static ByteCode code[] = {INS_RET,INS_NEGATE,INS_ADD,INS_MUL,INS_DIV,INS_SUB,INS_RET,INS_RET,INS_RET,
+    INS_RET,INS_RET,INS_RET,INS_END};
+    interpretMachineCode(code);
+    //VM->loadCode(code);
     decompile(code,CONSOLE_DUMP);
     decompile(code,TEXT_FILE);
     destroyVM();

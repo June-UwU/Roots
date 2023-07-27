@@ -1,4 +1,5 @@
 #include "rootObjects.hpp"
+#include "../logger.hpp"
 #include <sstream>
 
 using ostream = std::ostringstream;
@@ -87,5 +88,29 @@ std::string StringObject::getValue() const
 void StringObject::setValue(std::string stringValue)
 {
     value = stringValue;
+}
+
+RootObject* rootOperation(RootObject* lhs, RootObject* rhs, RootOperator oper) 
+{
+    auto ret = new FloatObject(69);
+    switch(oper) 
+    {
+        case RT_OP_ADD:
+            LOG_INFO("ROOT OBJECT ADD");
+            break;
+        case RT_OP_SUB:
+            LOG_INFO("ROOT OBJECT SUB");
+            break;
+        case RT_OP_MUL:
+            LOG_INFO("ROOT OBJECT MUL");
+            break;
+        case RT_OP_DIV:
+            LOG_INFO("ROOT OBJECT DIV");
+            break;
+        case RT_OP_NEG:
+            LOG_INFO("ROOT OBJECT NEG");
+            break;
+    }
+    return ret;
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 #include "../expression.hpp"
 #include "rootObjects.hpp"
+#include "instructions.hpp"
 
-RootObject* interpret(const Ast* ast);
+void interpret();
+void interpretMachineCode(ByteCode* code);

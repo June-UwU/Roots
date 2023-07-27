@@ -35,35 +35,6 @@ Block::Block(Statement* stmt,Block* owner)
     ownerBlock = owner;
 }
 
-void Block::addVariable(std::string id, RootObject* obj)
-{
-    auto iter = env.emplace(id,obj);
-    if(!iter.second)
-    {
-        LOG_WARN("multiple definition of variable");
-        // TODO : error
-    }
-}
-
-RootObject* Block::getObject(std::string id)
-{
-    Block* blk = this;
-    while(blk)
-    {
-        auto iter = blk->env.find(id);
-        if(iter == blk->env.end())
-        {
-            blk = blk->owner;
-        }
-        else
-        {
-            return iter->second;
-        }
-    }
-    // TODO :error..
-    return nullptr;
-}
-
 IfStmt::IfStmt(AstNode* pred, Block* block, Block* owner)
     :predicate{pred}
     ,stmtBlock{block}

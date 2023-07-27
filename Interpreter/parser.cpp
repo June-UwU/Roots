@@ -157,67 +157,7 @@ Statement* parseBlock(ArenaAllocator& allocator, std::vector<Token>& tokenList, 
 
 void parseVariable(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)
 {
-    AstNode* id = expression(allocator,tokenList,currentIndex);
-    AstNode* value  = nullptr;
-    if(tokenList[currentIndex].getTokenType() == EQUAL)
-    {
-        currentIndex++;
-        value = expression(allocator,tokenList,currentIndex);
-    }
-
-    if(id->getType() == LITERAL)
-    {
-        LiteralExpr* literal = (LiteralExpr*) id;
-        Token token = literal->getToken();
-        if(token.getTokenType() != IDENTIFIER)
-        {
-            LOG_ERROR("invalid identifier");
-        }
-        if(value != nullptr)
-        {
-            if(value->getType() != LITERAL)
-            {
-                LOG_WARN("invalid assignment, value is not a literal");
-                // TODO : AHH PANIC...!!!
-            }
-            else
-            {
-                Token valueToken = ((LiteralExpr*)value)->getToken();
-                RootObject* obj = nullptr;
-// TODO : this switch case is mem leak bonanza..good luck fixing it.
-                switch (valueToken.getTokenType())
-                {
-                case FLOAT_NUMBER:
-                    obj = new FloatObject(std::get<f64>(valueToken.getLiteral()));
-                    owner->addVariable(token.getLexeme(),obj);
-                    break;
-                case STRING:
-                    obj = new StringObject(std::get<std::string>(valueToken.getLiteral()));
-                    owner->addVariable(token.getLexeme(),obj);
-                    break;
-                case TRUE:
-                    obj = new BooleanObject(true);
-                    owner->addVariable(token.getLexeme(),obj);
-                    break;
-                case FALSE:
-                    obj = new BooleanObject(false);
-                    owner->addVariable(token.getLexeme(),obj);
-                    break;
-                default:
-                    owner->addVariable(token.getLexeme(),getNullPointer());
-                    break;
-                }
-            }
-        }
-        else
-        {
-            LOG_ERROR("no value assigned!");
-        }
-    }
-    else
-    {
-        LOG_ERROR("invalid identifier");
-    }
+    // TODO : get a cleaner implementations for this function;
 }
 
 Statement* parseExpr(ArenaAllocator& allocator, std::vector<Token>& tokenList, u32& currentIndex, Block* owner)

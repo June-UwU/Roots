@@ -1,6 +1,10 @@
 #pragma once
 #include "../types.hpp"
 #include <variant>
+class RootObject;
+class BooleanObject;
+class FloatObject;
+class StringObject;
 
 typedef enum ObjectType
 {
@@ -12,7 +16,17 @@ typedef enum ObjectType
     OBJECT_TYPE
 }ObjectType;
 
+typedef enum RootOperator {
+    RT_OP_NEG = 0x0,
+    RT_OP_ADD,
+    RT_OP_SUB,
+    RT_OP_MUL,
+    RT_OP_DIV,
 
+    ROOT_OPERATOR
+}RootOperator;
+
+RootObject* rootOperation(RootObject* lhs, RootObject* rhs, RootOperator oper);
 
 class RootObject
 {
@@ -23,6 +37,7 @@ class RootObject
         ObjectType type = NONE_OBJECT;
 };
 
+// Data types
 class BooleanObject : public RootObject
 {
     public:

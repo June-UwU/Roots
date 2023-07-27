@@ -24,6 +24,7 @@ class UnaryOper;
 using Ast = AbstractExpr;
 using AstNode = AbstractExpr;
 using Statement = AbstractStmt;
+using Env = std::map<std::string, RootObject*>;
 constexpr const u32 PAIR = 2;
 typedef enum ExprType
 {
@@ -78,13 +79,9 @@ class Block : public  AbstractStmt
 {
     public:
         Block(Statement* stmts, Block* owner);
-        void addVariable(std::string id, RootObject* obj);
-        RootObject* getObject(std::string id);
     private:
         Block* owner;
-        std::map<std::string, RootObject*> env;
         Statement* list;
-
 };
 
 class IfStmt : public AbstractStmt
