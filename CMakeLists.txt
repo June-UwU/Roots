@@ -10,7 +10,7 @@ if (UNIX)
 endif (UNIX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(PROJECT_NAME "Roots")
+set(PROJECT_NAME "roots_lang")
 
 project(${PROJECT_NAME} LANGUAGES CXX)
 
@@ -29,6 +29,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message("Cmake C++ standard : ${CMAKE_CXX_STANDARD}")
 
-add_subdirectory("Interpreter")
+add_subdirectory("roots")
+add_subdirectory("reference")
 add_custom_command(OUTPUT generating ctags database...
     COMMAND ctags -R)

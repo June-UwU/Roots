@@ -1,0 +1,10 @@
+#include "iostream"
+
+fn add(s32 lhs, s32 rhs) {
+    return lhs + rhs;
+}
+
+fn main() -> s32 {
+    print("hello world");
+    return 0;
+}
