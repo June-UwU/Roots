@@ -2,4 +2,6 @@
 #include "types.hpp"
 #include <string>
 
-void print_hello(std::string msg);
+#define GET_EXAMPLE(file) EXAMPLES file
+
+void print_source(std::string &file);

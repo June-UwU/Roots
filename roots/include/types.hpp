@@ -22,11 +22,17 @@ typedef double      f64;
 // POINTER SIZE
 constexpr const u64 PTR_SIZE = sizeof(void*);
 
-typedef enum error_code
-{
-    OK = 0x0,
-    FAIL,
-    FILE_OPEN_FAIL,
-    ERRORCODE
-}error_code;
+#define ERROR_CODES X(OK)   \
+    X(FILE_NOT_ADDED)       \
 
+#define X(code) code,
+
+typedef enum error_code {
+    ERROR_PREFIX = -1,
+    ERROR_CODES
+    ERROR_SIZE
+} error_code;
+
+#undef X
+
+extern const char* error_string[];
