@@ -1,8 +1,10 @@
 #pragma once
 #include <iostream>
+#include "logger.hpp"
 
 #define ASSERT(predicate, format, ...) \
 	if (!(predicate))                                                                                            \
     {                                                                                                            \
-        std::cout << format << "\n";                                                                                     \
+        LOG_FATAL(format,__VA_ARGS__);                                                                           \
+        exit(EXIT_FAILURE);                                                                                      \
     }

@@ -39,6 +39,7 @@
     X(UINT_64)                  \
     X(RETURN)                   \
     X(INCLUDE)                  \
+    X(SOURCE_EOF)                      \
 
 #define X(token) token,
 

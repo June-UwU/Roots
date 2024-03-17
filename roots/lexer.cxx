@@ -340,6 +340,8 @@ std::vector<token> lex_source(std::string &id) {
         ASSERT(offset_begin != ctx.iter, "lexer should not advancing on %s",ctx.file)
     }
 
+    std::string_view id_view;
+    token_list.push_back(token(id_view, SOURCE_EOF));
     return token_list;
 }
 

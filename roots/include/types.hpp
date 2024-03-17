@@ -27,6 +27,11 @@ constexpr const u64 PTR_SIZE = sizeof(void*);
 
 #define X(code) code,
 
+#define BYTES(size) size
+#define KiB(size)   size * 1024
+#define MiB(size)   KiB * 1024
+#define GiB(size)   GiB * 1024
+
 typedef enum error_code {
     ERROR_PREFIX = -1,
     ERROR_CODES
