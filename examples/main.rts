@@ -1,10 +1,14 @@
-#include "iostream"
+#include <iostream>
+#include <math>
 
-fn add(s32 lhs, s32 rhs) {
+fn add(lhs : s32, rhs : s32) {
     return lhs + rhs;
 }
 
 fn main() -> s32 {
+    lhs :s32 = 100;
+    rhs :s32 = 100;
+    add(lhs,rhs);
     print("hello world");
     return 0;
 }

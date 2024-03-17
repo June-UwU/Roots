@@ -20,7 +20,7 @@ bool add_source_to_context(std::string &path, FILE *stream) {
     return true;
 }
 
-std::string get_source(std::string &path) {
+std::string& get_source(std::string &path) {
     ASSERT(source_map.end() != source_map.find(path), "%s file was not found", path.c_str());
 
     return source_map[path];
