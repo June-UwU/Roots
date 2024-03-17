@@ -2,6 +2,7 @@
 #include "roots.hpp"
 #include "assert.hpp"
 #include <string_view>
+#include <unordered_map>
 
 #define X(token) #token,
 
@@ -95,6 +96,25 @@ void lexer_advance(lexer_context &context, u32 count)
     ASSERT(size > increment, "out of bound source lexer advance");
 
     context.iter = increment;
+}
+
+std::unordered_map<std::string_view, token_kind> generate_keyword_map() {
+    std::unordered_map<std::string_view, token_kind> token_map;
+
+    token_map["main"] = ENTRY_POINT;
+    token_map["s8"] = INT_8;
+    token_map["s16"] = INT_16;
+    token_map["s32"] = INT_32;
+    token_map["s64"] = INT_64;
+    token_map["u8"] = UINT_8;
+    token_map["u16"] = UINT_16;
+    token_map["u32"] = UINT_32;
+    token_map["u64"] = UINT_64;
+    token_map["include"] = INCLUDE;
+    token_map["fn"] = FUNCTION;
+    token_map["return"] = RETURN;
+
+    return token_map;
 }
 
 bool is_newline(lexer_context &context) {
@@ -248,10 +268,20 @@ token_kind special_token_multicharacter(lexer_context &context, token_kind prev)
     return parsed_token;
 }
 
+token_kind identifier_or_keyword(std::string_view &lexeme, std::unordered_map<std::string_view, token_kind> &keyword) {
+    if (keyword.end() == keyword.find(lexeme)) {
+        return IDENTIFIER;
+    }
+
+    return keyword[lexeme];
+}
+
+
 std::vector<token> lex_source(std::string &id) {
     std::string &source = get_source(id);
 
     lexer_context ctx{0,source,id};
+    std::unordered_map<std::string_view, token_kind> keyword = generate_keyword_map();
     std::vector<token> token_list;
 
     while (false == source_eof(ctx)) {
@@ -275,8 +305,8 @@ std::vector<token> lex_source(std::string &id) {
             auto end_iter = begin + offset_end;
 
             lexeme = std::string_view(begin_iter, end_iter);
-            
-            token_list.push_back(token(lexeme, IDENTIFIER));
+            token_kind kind = identifier_or_keyword(lexeme, keyword);
+            token_list.push_back(token(lexeme, kind));
         }
         else if (true == is_special_character(ctx)) {
             token_kind kind = special_token_kind(ctx);

@@ -27,6 +27,18 @@
     X(ARROW)                    \
     X(COMMA)                    \
     X(COLON)                    \
+    X(FUNCTION)                 \
+    X(ENTRY_POINT)              \
+    X(INT_8)                    \
+    X(INT_16)                   \
+    X(INT_32)                   \
+    X(INT_64)                   \
+    X(UINT_8)                   \
+    X(UINT_16)                  \
+    X(UINT_32)                  \
+    X(UINT_64)                  \
+    X(RETURN)                   \
+    X(INCLUDE)                  \
 
 #define X(token) token,
 
