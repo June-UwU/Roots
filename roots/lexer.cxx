@@ -4,13 +4,29 @@
 #include <string_view>
 #include <unordered_map>
 
-#define X(token) #token,
+#define X(token,lexeme) lexeme,
 
 const char *token_string[]{
     TOKENS
+    TOKEN_SYMBOLS
+    TOKEN_KEYWORDS 
+    TOKEN_LONG_SYMBOLS
 };
 
 #undef X
+
+#define X(token, lexeme) #token,
+
+const char *token_kind_string[]{
+    TOKENS 
+    TOKEN_SYMBOLS 
+    TOKEN_KEYWORDS 
+    TOKEN_LONG_SYMBOLS
+};
+
+#undef X
+
+
 
 typedef struct lexer_context {
     u32 iter;
@@ -56,7 +72,8 @@ std::string_view token::get_lexeme() {
 }
 
 std::string token::get_kind_string() {
-    return std::string(token_string[kind]);
+    u32 string_index = GET_TOKEN_KIND_INDEX(kind);
+    return std::string(token_kind_string[string_index]);
 }
 
 token_kind token::get_kind(){
@@ -75,6 +92,14 @@ bool is_space(lexer_context &context) {
     }
     
     return false;
+}
+
+token_kind get_token(std::string_view &lexeme, std::unordered_map<std::string_view, token_kind> &lexeme_map) {
+    if (lexeme_map.end() == lexeme_map.find(lexeme)) {
+        return INVALID;
+    }
+
+    return lexeme_map[lexeme];
 }
 
 char lexer_peek(lexer_context &context, u32 offset)
@@ -98,21 +123,23 @@ void lexer_advance(lexer_context &context, u32 count)
     context.iter = increment;
 }
 
+void lexer_retreat(lexer_context &context, u32 count) {
+    u32 increment = context.iter - count;
+
+    ASSERT(context.iter >= 0, "out of bound source lexer retreat");
+
+    context.iter = increment;
+}
+
 std::unordered_map<std::string_view, token_kind> generate_keyword_map() {
     std::unordered_map<std::string_view, token_kind> token_map;
 
-    token_map["main"] = ENTRY_POINT;
-    token_map["s8"] = INT_8;
-    token_map["s16"] = INT_16;
-    token_map["s32"] = INT_32;
-    token_map["s64"] = INT_64;
-    token_map["u8"] = UINT_8;
-    token_map["u16"] = UINT_16;
-    token_map["u32"] = UINT_32;
-    token_map["u64"] = UINT_64;
-    token_map["include"] = INCLUDE;
-    token_map["fn"] = FUNCTION;
-    token_map["return"] = RETURN;
+    for (u32 i = TOKEN_KIND_BEGIN + 1; i < TOKEN_KIND_END; i++) {
+        u32 string_index = GET_TOKEN_KIND_INDEX(i);
+        const char *string_ptr = token_string[string_index];
+        token_map[string_ptr] = static_cast<token_kind>(i);
+    }
+    ASSERT(token_map.size() < TOKEN_KIND_END , "token type mapping doesn't match the token specs");
 
     return token_map;
 }
@@ -152,136 +179,53 @@ bool is_alphabet(lexer_context &context){
     return (is_small || is_large);
 }
 
-bool is_special_character(lexer_context &context) {
-    u32 iter = context.iter;
-    char alpha = context.source[iter];
-    
+bool is_special_token_kind(token_kind& kind) {
     bool is_special = false;
+    switch (kind)
+    {
+#define X(token, lexeme)                                                                                               \
+    case token: {                                                                                                      \
+        is_special = true;                                                                                             \
+    }                                                                                                                  \
+    break;
 
-    switch (alpha) {
-    case '#':
-    case '{':
-    case '}':
-    case '[':
-    case ']':
-    case '-':
-    case '+':
-    case '*':
-    case '>':
-    case '<':
-    case '"':
-    case '/':
-    case '\\':
-    case '(':
-    case ')':
-    case ';':
-    case '=':
-    case ',':
-    case ':':
-        is_special = true;
-    }
+        TOKEN_SYMBOLS
 
-    return is_special;
-}
+#undef X
 
-token_kind special_token_kind(lexer_context &context) {
-    u32 iter = context.iter;
-    char alpha = context.source[iter];
-
-    token_kind kind = INVALID;
-    switch (alpha) {
-    case '=':
-        kind = EQUAL;
-        break;
-    case '{':
-        kind = OPEN_CURLY_BRACE;
-        break;
-    case '}':
-        kind = CLOSE_CURLY_BRACE;
-        break;
-    case '[':
-        kind = OPEN_SQUARE_BRACE;
-        break;
-    case ']':
-        kind = CLOSE_SQUARE_BRACE;
-        break;
-    case '-':
-        kind = DASH;
-        break;
-    case '+':
-        kind = PLUS;
-        break;
-    case '*':
-        kind = ASTRIX;
-        break;
-    case '>':
-        kind = CLOSE_ARROW;
-        break;
-    case '<':
-        kind = OPEN_ARROW;
-        break;
-    case '"':
-        kind = QUOTES;
-        break;
-    case '/':
-        kind = BACK_SLASH;
-        break;
-    case '\\':
-        kind = FORWARD_SLASH;
-        break;
-    case '(':
-        kind = OPEN_BRACE;
-        break;
-    case ')':
-        kind = CLOSE_BRACE;
-        break;
-    case '#':
-        kind = HASH;
-        break;
-    case ';':
-        kind = SEMI_COLON;
-        break;
-    case ',':
-        kind = COMMA;
-        break;
-    case ':':
-        kind = COLON;
-        break;
     }
 
     return kind;
 }
 
-token_kind special_token_multicharacter(lexer_context &context, token_kind prev) {
-    token_kind current_token = special_token_kind(context);
+bool is_special_character(lexer_context &context, std::unordered_map<std::string_view, token_kind> &lexeme_map) {
+    u32 iter = context.iter;
+    std::string may_be_symbol{context.source[iter]};
 
-    token_kind parsed_token = prev;
-    switch (prev) {
-    case DASH:
-        if (CLOSE_ARROW == current_token) {
-            parsed_token = ARROW;
-            lexer_advance(context, 1);
-        }
-        break;
-    }
+    std::string_view symbol_view(may_be_symbol);
+    token_kind kind = get_token(symbol_view, lexeme_map);
 
-    return parsed_token;
+    return is_special_token_kind(kind);
 }
 
-token_kind identifier_or_keyword(std::string_view &lexeme, std::unordered_map<std::string_view, token_kind> &keyword) {
-    if (keyword.end() == keyword.find(lexeme)) {
-        return IDENTIFIER;
+
+bool is_special_token_multicharacter(std::string_view &lexeme,
+                                     std::unordered_map<std::string_view, token_kind> &lexeme_map) {
+    token_kind kind = get_token(lexeme, lexeme_map);
+
+    if (INVALID != kind)
+    {
+        return true;
     }
 
-    return keyword[lexeme];
+    return false;
 }
-
 
 std::vector<token> lex_source(std::string &id) {
     std::string &source = get_source(id);
 
     lexer_context ctx{0,source,id};
-    std::unordered_map<std::string_view, token_kind> keyword = generate_keyword_map();
+    std::unordered_map<std::string_view, token_kind> lexeme_map = generate_keyword_map();
     std::vector<token> token_list;
 
     while (false == source_eof(ctx)) {
@@ -305,39 +249,57 @@ std::vector<token> lex_source(std::string &id) {
             auto end_iter = begin + offset_end;
 
             lexeme = std::string_view(begin_iter, end_iter);
-            token_kind kind = identifier_or_keyword(lexeme, keyword);
+            
+            token_kind kind = get_token(lexeme, lexeme_map);
+            if (INVALID == kind) {
+                kind = IDENTIFIER;
+            }
+
             token_list.push_back(token(lexeme, kind));
         }
-        else if (true == is_special_character(ctx)) {
-            token_kind kind = special_token_kind(ctx);
+        else if (true == is_numeric(ctx))
+        {
+            while (true == is_numeric(ctx)) {
+                lexer_advance(ctx, 1);
+            }
+
+            u32 offset_end = ctx.iter;
+            auto begin_iter = begin + offset_begin;
+            auto end_iter = begin + offset_end;
+
+            std::string_view lexeme(begin_iter, end_iter);
+            token_list.push_back(token(lexeme, NUMERIC_LITERAL));
+        }
+        else if (true == is_special_character(ctx, lexeme_map))
+        {
+
             lexer_advance(ctx, 1);
-            kind = special_token_multicharacter(ctx, kind);
+            if (false == source_eof(ctx)) {
+                lexer_advance(ctx, 1);
+            }
 
             u32 offset_end = ctx.iter;
             auto begin_iter = begin + offset_begin;
             auto end_iter = begin + offset_end;
 
             lexeme = std::string_view(begin_iter, end_iter);
-            token_list.push_back(token(lexeme, kind));
-        }
-        else if (true == is_numeric(ctx)) {
-            while (true == is_numeric(ctx)) {
-                lexer_advance(ctx,1);
+
+            bool is_multichararter = is_special_token_multicharacter(lexeme, lexeme_map);
+            if (false == is_multichararter) {
+                lexeme = std::string_view(begin_iter, end_iter - 1);
+                lexer_retreat(ctx, 1);
             }
 
-            u32 offset_end = ctx.iter;
-            auto begin_iter = begin + offset_begin;
-            auto end_iter  = begin + offset_end;
+            token_kind kind = get_token(lexeme, lexeme_map);
 
-            std::string_view lexeme(begin_iter, end_iter);
-            token_list.push_back(token(lexeme, NUMERIC_LITERAL));
+            token_list.push_back(token(lexeme, kind));
         }
         else {
             lexer_advance(ctx, 1);
             token_list.push_back(token(lexeme, INVALID));
         }
 
-        ASSERT(offset_begin != ctx.iter, "lexer should not advancing on %s",ctx.file)
+            ASSERT(offset_begin != ctx.iter, "lexer should not advancing on %s",ctx.file)
     }
 
     std::string_view id_view;
