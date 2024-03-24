@@ -4,12 +4,12 @@
 
 #include "../roots/lexer.hpp"
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     constexpr const char *main_example = GET_EXAMPLE("main.rts");
     add_source(main_example);
 
     std::string main(main_example);
-    auto token_list = lex_source(main);
+    auto        token_list = lex_source(main);
     print_token_list(token_list);
     return EXIT_SUCCESS;
 }

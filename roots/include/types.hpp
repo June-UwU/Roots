@@ -20,12 +20,13 @@ typedef float       f32;
 typedef double      f64;
 
 // POINTER SIZE
-constexpr const u64 PTR_SIZE = sizeof(void*);
+constexpr const u64 PTR_SIZE = sizeof(void *);
 
-#define ERROR_CODES X(OK)   \
-    X(FILE_NOT_ADDED)       \
+#define ERROR_CODES                                                            \
+    X(OK)                                                                      \
+    X(FILE_NOT_ADDED)
 
-#define X(code) code,
+#define X(code)     code,
 
 #define BYTES(size) size
 #define KiB(size)   size * 1024
@@ -34,10 +35,9 @@ constexpr const u64 PTR_SIZE = sizeof(void*);
 
 typedef enum error_code {
     ERROR_PREFIX = -1,
-    ERROR_CODES
-    ERROR_SIZE
+    ERROR_CODES ERROR_SIZE
 } error_code;
 
 #undef X
 
-extern const char* error_string[];
+extern const char *error_string[];
