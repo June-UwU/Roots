@@ -19,38 +19,42 @@ const char *token_kind_string[]{
 #undef X
 
 typedef struct lexer_context {
+    u32          line;
     u32          iter;
-    std::string &source;
     std::string  file;
+    std::string &source;
 } lexer_context;
 
-std::ostream &operator<<(std::ostream &os, token &token) {
-    os << token.get_kind_string() << " : " << token.get_lexeme() << "\n";
-    return os;
-}
-
-token::token(std::string_view lexeme, token_kind kind)
-    : lexeme(lexeme), kind(kind) {}
+token::token(std::string_view lexeme, token_kind kind, u32 line, u32 character)
+    : lexeme(lexeme), kind(kind), line(line), character(character) {}
 
 token::token(token &lhs) {
-    lexeme = lhs.lexeme;
-    kind   = lhs.kind;
+    kind      = lhs.kind;
+    line      = lhs.line;
+    lexeme    = lhs.lexeme;
+    character = lhs.character;
 }
 
 token::token(token &&lhs) {
-    lexeme = lhs.lexeme;
-    kind   = lhs.kind;
+    line      = lhs.line;
+    kind      = lhs.kind;
+    lexeme    = lhs.lexeme;
+    character = lhs.character;
 }
 
 token &token::operator=(token &lhs) {
-    lexeme = lhs.lexeme;
-    kind   = lhs.kind;
+    line      = lhs.line;
+    kind      = lhs.kind;
+    lexeme    = lhs.lexeme;
+    character = lhs.character;
     return *this;
 }
 
 token &token::operator=(token &&lhs) {
-    lexeme = lhs.lexeme;
-    kind   = lhs.kind;
+    line      = lhs.line;
+    kind      = lhs.kind;
+    lexeme    = lhs.lexeme;
+    character = lhs.character;
     return *this;
 }
 
@@ -60,6 +64,10 @@ std::string      token::get_kind_string() {
     u32 string_index = GET_TOKEN_KIND_INDEX(kind);
     return std::string(token_kind_string[string_index]);
 }
+
+u32        token::get_character_pos() { return character; }
+
+u32        token::get_line() { return line; }
 
 token_kind token::get_kind() { return kind; }
 
@@ -102,7 +110,6 @@ void lexer_advance(lexer_context &context, u32 count) {
     u32 increment = context.iter + count;
 
     ASSERT(size > increment, "out of bound source lexer advance");
-
     context.iter = increment;
 }
 
@@ -208,6 +215,7 @@ token identifier_or_keyword(
     std::unordered_map<std::string_view, token_kind> &lexeme_map) {
 
     u32 offset_begin = context.iter;
+    u32 character    = context.iter;
 
     while ((true == is_alphabet(context) || true == is_numeric(context))) {
         lexer_advance(context, 1);
@@ -226,7 +234,7 @@ token identifier_or_keyword(
         kind = IDENTIFIER;
     }
 
-    return token(lexeme, kind);
+    return token(lexeme, kind, context.line, character);
 }
 
 token numeric_value(
@@ -234,6 +242,7 @@ token numeric_value(
     std::unordered_map<std::string_view, token_kind> &lexeme_map) {
 
     u32 offset_begin = context.iter;
+    u32 character    = context.iter;
 
     while (true == is_numeric(context)) {
         lexer_advance(context, 1);
@@ -246,7 +255,7 @@ token numeric_value(
 
     std::string_view lexeme(begin_iter, end_iter);
 
-    return token(lexeme, NUMERIC_LITERAL);
+    return token(lexeme, NUMERIC_LITERAL, context.line, character);
 }
 
 token special_operator(
@@ -254,6 +263,7 @@ token special_operator(
     std::unordered_map<std::string_view, token_kind> &lexeme_map) {
 
     u32 offset_begin = context.iter;
+    u32 character    = context.iter;
 
     lexer_advance(context, 1);
     if (false == source_eof(context)) {
@@ -276,13 +286,13 @@ token special_operator(
 
     token_kind kind = get_token(lexeme, lexeme_map);
 
-    return token(lexeme, kind);
+    return token(lexeme, kind, context.line, character);
 }
 
 std::vector<token> lex_source(std::string &id) {
     std::string                                     &source = get_source(id);
+    lexer_context                                    ctx{0, 0, id, source};
 
-    lexer_context                                    ctx{0, source, id};
     std::unordered_map<std::string_view, token_kind> lexeme_map =
         generate_keyword_map();
     std::vector<token> token_list;
@@ -291,8 +301,11 @@ std::vector<token> lex_source(std::string &id) {
         u32              offset_begin = ctx.iter;
         std::string_view lexeme;
 
-        if ((true == is_space(ctx) || true == is_newline(ctx))) {
+        if (true == is_space(ctx)) {
             lexer_advance(ctx, 1);
+        } else if (true == is_newline(ctx)) {
+            lexer_advance(ctx, 1);
+            ctx.line = ctx.line + 1;
         } else if (true == is_alphabet(ctx)) {
 
             token alpha_token = identifier_or_keyword(ctx, lexeme_map);
@@ -309,23 +322,28 @@ std::vector<token> lex_source(std::string &id) {
 
             token_list.push_back(std::move(special_token));
         } else {
-            auto begin = ctx.source.begin();
-            lexeme     = std::string_view(begin, begin + 1);
+            auto begin    = ctx.source.begin();
+            lexeme        = std::string_view(begin, begin + 1);
+            u32 character = ctx.iter;
+
             lexer_advance(ctx, 1);
-            token_list.push_back(token(lexeme, INVALID));
+            token_list.push_back(token(lexeme, INVALID, ctx.line, character));
         }
 
-        ASSERT(offset_begin != ctx.iter, "lexer should not advancing on %s",
-               ctx.file)
+        ASSERT(offset_begin != ctx.iter, "lexer not advancing on %s", ctx.file)
     }
 
     std::string_view id_view;
-    token_list.push_back(token(id_view, SOURCE_EOF));
+    token_list.push_back(token(id_view, SOURCE_EOF, ctx.line, ctx.iter));
     return token_list;
 }
 
 void print_token_list(std::vector<token> &token_list) {
     for (auto &token : token_list) {
-        std::cout << token;
+        std::string lexeme = static_cast<std::string>(token.get_lexeme());
+        log_message("%s[%d,%d] %s%s : %s%s\n", ANSI_COLOR_MAGENTA,
+                    token.get_line(), token.get_character_pos(),
+                    ANSI_COLOR_GREEN, token.get_kind_string().c_str(),
+                    ANSI_COLOR_RESET, lexeme.c_str());
     }
 }

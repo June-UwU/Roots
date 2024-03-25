@@ -58,20 +58,24 @@ typedef enum token_kind {
 
 class token {
   public:
-    token(std::string_view lexeme, token_kind kind);
+    token(std::string_view lexeme, token_kind kind, u32 line, u32 character);
     token(token &lhs);
     token(token &&rhs);
 
     token           &operator=(token &lhs);
     token           &operator=(token &&lhs);
 
+    u32              get_line();
+    token_kind       get_kind();
     std::string_view get_lexeme();
     std::string      get_kind_string();
-    token_kind       get_kind();
+    u32              get_character_pos();
 
   private:
-    std::string_view lexeme;
+    u32              line;
     token_kind       kind;
+    std::string_view lexeme;
+    u32              character;
 };
 
 std::vector<token> lex_source(std::string &id);
