@@ -16,7 +16,7 @@ error_code add_source(const char *file_path) {
     std::string path(file_path);
     bool        added = add_source_to_context(path, file);
     if (false == added) {
-        // TODO : diagnostics
+        ASSERT(false, "file include to compiler failure");
         return FILE_NOT_ADDED;
     }
 

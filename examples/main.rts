@@ -1,8 +1,5 @@
-#include <iostream>
-#include <math>
-
 fn add(lhs : s32, rhs : s32) ->s32 {
-    return lhs + rhs;
+    return lhs;
 }
 
 fn main() -> s32 {
