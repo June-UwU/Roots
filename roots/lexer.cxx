@@ -21,7 +21,7 @@ const char *token_kind_string[]{
 token::token(std::string_view lexeme, token_kind kind, u32 line, u32 character)
     : lexeme(lexeme), kind(kind), line(line), character(character) {}
 
-token::token(token &lhs) {
+token::token(const token &lhs) {
     kind      = lhs.kind;
     line      = lhs.line;
     lexeme    = lhs.lexeme;
@@ -35,7 +35,7 @@ token::token(token &&lhs) {
     character = lhs.character;
 }
 
-token &token::operator=(token &lhs) {
+token &token::operator=(const token &lhs) {
     line      = lhs.line;
     kind      = lhs.kind;
     lexeme    = lhs.lexeme;
@@ -98,7 +98,7 @@ class lexer_context {
         u32 size        = source.size();
         u32 peek_offset = iter + offset;
 
-        ASSERT(peek_offset < size, "out of bound lexer peek");
+        ASSERT(peek_offset < size, "out of bound lexer peek : %d",peek_offset);
 
         return source[peek_offset];
     }
@@ -107,14 +107,14 @@ class lexer_context {
         u32 size      = source.size() + 1;
         u32 increment = iter + count;
 
-        ASSERT(size > increment, "out of bound source lexer advance");
+        ASSERT(size > increment, "out of bound source lexer advance : %d", increment);
         iter = increment;
     }
 
     void retreat(u32 count) {
         u32 increment = iter - count;
 
-        ASSERT(increment >= 0, "out of bound source lexer retreat");
+        ASSERT(increment >= 0, "out of bound source lexer retreat : %d",increment);
 
         iter = increment;
     }
@@ -272,7 +272,7 @@ class lexer_context {
             token_map[string_ptr]    = static_cast<token_kind>(i);
         }
         ASSERT(token_map.size() < TOKEN_KIND_END,
-               "token type mapping doesn't match the token specs");
+               "token type mapping doesn't match the token specs, size increment of %d",(token_map.size() - TOKEN_KIND_END));
 
         return token_map;
     }

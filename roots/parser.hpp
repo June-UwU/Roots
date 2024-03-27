@@ -97,7 +97,7 @@ class function_node : public ast_node {
 
 class function_call_node : ast_node {
   public:
-    function_call_node(std::shared_ptr<ast_node> &parent);
+    function_call_node(std::string_view &id,std::shared_ptr<ast_node> &parent);
 
     std::shared_ptr<ast_node> get_callee();
     std::shared_ptr<ast_node> get_caller();
@@ -106,13 +106,14 @@ class function_call_node : ast_node {
     void add_parameter(std::vector<std::shared_ptr<ast_node>> &parameter_list);
 
   private:
+    std::string_view                       id;
     std::shared_ptr<ast_node>              callee;
     std::vector<std::shared_ptr<ast_node>> parameters;
 };
 
 class ast : ast_node {
   public:
-    ast(std::string id, std::vector<token> tokens);
+    ast(std::string id);
 
     void                      print_node(u32 nest_depth);
     std::shared_ptr<ast_node> get_node(std::string_view &id);
@@ -121,7 +122,6 @@ class ast : ast_node {
   private:
     std::string                            id;
     std::vector<std::shared_ptr<ast_node>> nodes;
-    std::vector<token>                     token_list;
     std::unordered_map<std::string_view, std::shared_ptr<ast_node>>
         module_nodes;
 };

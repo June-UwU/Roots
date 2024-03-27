@@ -8,11 +8,10 @@
 
 std::unordered_map<std::string, std::string> source_map;
 
-bool add_source_to_context(std::string &path, FILE *stream) {
-    ASSERT(nullptr != stream, "%s stream was nullptr");
+bool add_source_to_context(std::string &path) {
     std::stringstream source;
-
-    std::ifstream     file(stream);
+    std::ifstream     file(path,std::ios::in);
+    ASSERT(false != file.is_open(),"error in opening file : ", path.c_str());
 
     source << file.rdbuf();
 

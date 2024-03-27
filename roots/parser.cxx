@@ -9,13 +9,8 @@ constexpr const char *ast_attribute_string[]{AST_ATTRIBUTES};
 
 #undef X
 
-typedef struct parser_context {
-    u32                 iter;
-    std::vector<token> &token_list;
-} parser_context;
-
-ast::ast(std::string id, std::vector<token> tokens)
-    : id(id), token_list(tokens) {
+ast::ast(std::string id)
+    : id(id) {
     kind = AST_MODULE;
 }
 
@@ -31,7 +26,8 @@ void ast::add_node(std::string_view &id, std::shared_ptr<ast_node> node) {
 
 std::shared_ptr<ast_node> ast::get_node(std::string_view &id) {
     if (module_nodes.end() == module_nodes.find(id)) {
-        ASSERT(false, "diagnostics unknown function/ global look up");
+        std::string look_up(id);
+        ASSERT(false, "diagnostics undeclared symbol : %s ",look_up.c_str());
         return std::shared_ptr<ast_node>();
     }
 
@@ -63,7 +59,8 @@ std::string_view             variable_node::get_id() { return id; }
 
 variable_node::value_variant variable_node::get_value() {
     if (false == initialized) {
-        ASSERT(false, "uninitialied variable value lookup");
+        std::string symbol_name(id);
+        ASSERT(false, "diagnostic (warning) uninitialied variable : %s",symbol_name.c_str());
     }
     return value;
 }
@@ -142,7 +139,8 @@ void function_node::add_code(std::shared_ptr<ast_node> code_section) {
 void function_node::add_local(std::string_view          id,
                               std::shared_ptr<ast_node> local) {
     if (locals.end() != locals.find(id)) {
-        ASSERT(false, "diagnostics local redeclaration");
+        std::string symbol_name(id);
+        ASSERT(false, "diagnostics error local redeclaration : %s", symbol_name.c_str());
     }
 
     locals[id] = local;
@@ -153,13 +151,15 @@ void function_node::add_parameters(
     parameters = parameter_list;
 }
 
-function_call_node::function_call_node(std::shared_ptr<ast_node> &root) {
+function_call_node::function_call_node(std::string_view &id,std::shared_ptr<ast_node> &root) 
+    : id(id){
     kind   = AST_FUNCTION_CALL;
     parent = root;
 }
 
 std::shared_ptr<ast_node> function_call_node::get_callee() {
-    ASSERT(nullptr != callee.get(), "callee was never set");
+    std::string symbol_name(id);
+    ASSERT(nullptr != callee.get(), "callee was never set %s",symbol_name.c_str());
     return callee;
 }
 
@@ -181,54 +181,54 @@ void function_call_node::add_parameter(
     parameters = parameter_list;
 }
 
-class parser_context {
-  public:
-    parser_context(u32 iter, std::vector<token> &token_list)
-        : iter(iter), tokens(token_list){};
+// class parser_context {
+//   public:
+//     parser_context(u32 iter, std::vector<token> &token_list)
+//         : iter(iter), tokens(token_list){};
 
-    bool is_module_end() {
-        ASSERT(iter < tokens.size(), "diagnostic out of index token look up");
-        return SOURCE_EOF == get_current_kind();
-    }
+//     bool is_module_end() {
+//         ASSERT(iter < tokens.size(), "diagnostic out of index token look up : %d",iter);
+//         return SOURCE_EOF == get_current_kind();
+//     }
 
-    token_kind get_current_kind() { return tokens[iter].get_kind(); }
-    void       consume_token() {
-        iter = iter + 1;
-        ASSERT(iter < tokens.size(), "diagnostics reached the source end while parsing, maybe print token and position");
-    }
+//     token_kind get_current_kind() { return tokens[iter].get_kind(); }
+//     void       consume_token() {
+//         iter = iter + 1;
+//         ASSERT(iter < tokens.size(), "diagnostics reached the source end while parsing, maybe print token and position %d",iter);
+//     }
 
-    std::shared_ptr<ast_node> parse_function(std::shared_ptr<ast_node> parent) {
+//     std::shared_ptr<ast_node> parse_function(std::shared_ptr<ast_node> parent) {
+//         return std::shared_ptr<ast_node>();
+//     }
 
-    }
-
-  private:
-    u32                 iter;
-    std::vector<token> &tokens;
-};
+//   private:
+//     u32                 iter;
+//     std::vector<token>  tokens;
+// };
 
 std::shared_ptr<ast_node> parse_module(std::string        &id,
                                        std::vector<token> &token_list) {
 
-    ast_node *raw_node = reinterpret_cast<ast_node *>(new ast(id, token_list));
+    ast_node *raw_node = reinterpret_cast<ast_node *>(new ast(id));
     std::shared_ptr<ast_node> module_node(raw_node);
 
-    parser_context            parser(0, token_list);
-    while (false == parser.is_module_end()) {
+    // parser_context            parser(0, token_list);
+    // while (false == parser.is_module_end()) {
 
-        token_kind current_kind = parser.get_current_kind();
-        switch (current_kind) {
-        case FUNCTION: {
-            std::shared_ptr<ast_node> fn_node =
-                parser.parse_function(module_node);
-        } break;
-        case SOURCE_EOF: {
-            ASSERT(false, "early exit for tokens case shouldn't happen");
-        } break;
-        case IDENTIFIER: {
+    //     token_kind current_kind = parser.get_current_kind();
+    //     switch (current_kind) {
+    //     case FUNCTION: {
+    //         std::shared_ptr<ast_node> fn_node =
+    //             parser.parse_function(module_node);
+    //     } break;
+    //     case SOURCE_EOF: {
+    //         ASSERT(false, "early exit for tokens case shouldn't happen %s",id.c_str());
+    //     } break;
+    //     case IDENTIFIER: {
 
-        } break;
-        }
-    }
+    //     } break;
+    //     }
+    // }
 
     return module_node;
 }

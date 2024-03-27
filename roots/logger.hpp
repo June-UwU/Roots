@@ -1,5 +1,6 @@
 #pragma once
 #include "types.hpp"
+#include <stdarg.h>
 
 #define ANSI_COLOR_RESET       "\x1b[0m"
 #define ANSI_COLOR_BLACK       "\x1b[30m"

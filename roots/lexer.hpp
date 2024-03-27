@@ -59,10 +59,10 @@ typedef enum token_kind {
 class token {
   public:
     token(std::string_view lexeme, token_kind kind, u32 line, u32 character);
-    token(token &lhs);
+    token(const token &lhs);
     token(token &&rhs);
 
-    token           &operator=(token &lhs);
+    token           &operator=(const token &lhs);
     token           &operator=(token &&lhs);
 
     u32              get_line();
