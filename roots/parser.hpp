@@ -113,7 +113,7 @@ class function_call_node : ast_node {
 
 class ast : ast_node {
   public:
-    ast(std::string id);
+    ast(std::string id,std::vector<token>& token_list);
 
     void                      print_node(u32 nest_depth);
     std::shared_ptr<ast_node> get_node(std::string_view &id);
@@ -124,6 +124,7 @@ class ast : ast_node {
     std::vector<std::shared_ptr<ast_node>> nodes;
     std::unordered_map<std::string_view, std::shared_ptr<ast_node>>
         module_nodes;
+    std::vector<token>  tokens;
 };
 
 std::shared_ptr<ast_node> parse_module(std::string        &id,

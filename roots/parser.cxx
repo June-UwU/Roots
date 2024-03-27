@@ -9,8 +9,8 @@ constexpr const char *ast_attribute_string[]{AST_ATTRIBUTES};
 
 #undef X
 
-ast::ast(std::string id)
-    : id(id) {
+ast::ast(std::string id,std::vector<token>& token_list)
+    : id(id) , tokens(token_list){
     kind = AST_MODULE;
 }
 
@@ -181,54 +181,54 @@ void function_call_node::add_parameter(
     parameters = parameter_list;
 }
 
-// class parser_context {
-//   public:
-//     parser_context(u32 iter, std::vector<token> &token_list)
-//         : iter(iter), tokens(token_list){};
+class parser_context {
+  public:
+    parser_context(u32 iter, std::vector<token> &token_list)
+        : iter(iter), tokens(token_list){};
 
-//     bool is_module_end() {
-//         ASSERT(iter < tokens.size(), "diagnostic out of index token look up : %d",iter);
-//         return SOURCE_EOF == get_current_kind();
-//     }
+    bool is_module_end() {
+        ASSERT(iter < tokens.size(), "diagnostic out of index token look up : %d",iter);
+        return SOURCE_EOF == get_current_kind();
+    }
 
-//     token_kind get_current_kind() { return tokens[iter].get_kind(); }
-//     void       consume_token() {
-//         iter = iter + 1;
-//         ASSERT(iter < tokens.size(), "diagnostics reached the source end while parsing, maybe print token and position %d",iter);
-//     }
+    token_kind get_current_kind() { return tokens[iter].get_kind(); }
+    void       consume_token() {
+        iter = iter + 1;
+        ASSERT(iter < tokens.size(), "diagnostics reached the source end while parsing, maybe print token and position %d",iter);
+    }
 
-//     std::shared_ptr<ast_node> parse_function(std::shared_ptr<ast_node> parent) {
-//         return std::shared_ptr<ast_node>();
-//     }
+    std::shared_ptr<ast_node> parse_function(std::shared_ptr<ast_node> parent) {
+        return std::shared_ptr<ast_node>();
+    }
 
-//   private:
-//     u32                 iter;
-//     std::vector<token>  tokens;
-// };
+  private:
+    u32                 iter;
+    std::vector<token>  tokens;
+};
 
 std::shared_ptr<ast_node> parse_module(std::string        &id,
                                        std::vector<token> &token_list) {
 
-    ast_node *raw_node = reinterpret_cast<ast_node *>(new ast(id));
+    ast_node *raw_node = reinterpret_cast<ast_node *>(new ast(id,token_list));
     std::shared_ptr<ast_node> module_node(raw_node);
 
-    // parser_context            parser(0, token_list);
-    // while (false == parser.is_module_end()) {
+    parser_context            parser(0, token_list);
+    while (false == parser.is_module_end()) {
 
-    //     token_kind current_kind = parser.get_current_kind();
-    //     switch (current_kind) {
-    //     case FUNCTION: {
-    //         std::shared_ptr<ast_node> fn_node =
-    //             parser.parse_function(module_node);
-    //     } break;
-    //     case SOURCE_EOF: {
-    //         ASSERT(false, "early exit for tokens case shouldn't happen %s",id.c_str());
-    //     } break;
-    //     case IDENTIFIER: {
+        token_kind current_kind = parser.get_current_kind();
+        switch (current_kind) {
+        case FUNCTION: {
+            std::shared_ptr<ast_node> fn_node =
+                parser.parse_function(module_node);
+        } break;
+        case SOURCE_EOF: {
+            ASSERT(false, "early exit for tokens case shouldn't happen %s",id.c_str());
+        } break;
+        case IDENTIFIER: {
 
-    //     } break;
-    //     }
-    // }
+        } break;
+        }
+    }
 
     return module_node;
 }
