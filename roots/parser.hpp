@@ -1,5 +1,7 @@
 #pragma once
+#include "lexer.hpp"
 #include "types.hpp"
+
 #include <memory>
 #include <string_view>
 #include <unordered_map>
@@ -8,15 +10,16 @@
 
 #define GET_AST_INDEX(type) (type - 1)
 
-#define AST_TYPES                                                              \
-    X(VAR_DECL_S8, "s8 ")                                                      \
-    X(VAR_DECL_S16, "s16")                                                     \
-    X(VAR_DECL_S32, "s32")                                                     \
-    X(VAR_DECL_S64, "s64")                                                     \
-    X(VAR_DECL_U8, "u8")                                                       \
-    X(VAR_DECL_U16, "u16")                                                     \
-    X(VAR_DECL_U32, "u32")                                                     \
-    X(VAR_DECL_U64, "u64")
+#define AST_ATTRIBUTES                                                         \
+    X(INVALID, "invalid attribute")                                            \
+    X(VAR_DECL_S8, "signed 8-bit integer")                                     \
+    X(VAR_DECL_S16, "signed 16-bit integer")                                   \
+    X(VAR_DECL_S32, "signed 32-bit integer")                                   \
+    X(VAR_DECL_S64, "signed 64-bit integer")                                   \
+    X(VAR_DECL_U8, "unsigned 8-bit integer")                                   \
+    X(VAR_DECL_U16, "unsigned 16-bit integer")                                 \
+    X(VAR_DECL_U32, "unsigned 32-bit integer")                                 \
+    X(VAR_DECL_U64, "unsigned 64-bit integer")
 
 #define AST_GENERAL                                                            \
     X(INVALID, "invalid")                                                      \
@@ -26,7 +29,16 @@
 
 #define X(kind, name) AST_##kind,
 
-enum ast_kind { AST_KIND_BEGIN = 0x0, AST_TYPES AST_GENERAL AST_KIND_END };
+enum ast_kind { AST_KIND_BEGIN = 0x0, AST_GENERAL AST_KIND_END };
+
+#undef X
+
+#define X(attribute, name) AST_ATTRIBUTE_##attribute,
+
+enum ast_attribute {
+    AST_ATTRIBUTE_BEGIN = 0x0,
+    AST_ATTRIBUTES AST_ATTRIBUTE_END
+};
 
 #undef X
 
@@ -34,7 +46,7 @@ class ast_node {
   public:
     ast_kind                  get_type();
     std::shared_ptr<ast_node> get_parent();
-    virtual void              print_node(u32 nest_depth) = 0;
+    void                      print_node(u32 nest_depth);
 
   protected:
     ast_kind                  kind;
@@ -57,6 +69,7 @@ class variable_node : public ast_node {
 
   private:
     std::string_view id;
+    ast_attribute    type;
     value_variant    value;
     bool             initialized;
 };
@@ -65,13 +78,13 @@ class function_node : public ast_node {
   public:
     function_node(std::string_view &id, std::shared_ptr<ast_node> parent);
 
-    bool     is_defined();
-    ast_kind get_return_type();
-    void     print_declaration();
-    void     print_node(u32 nest_depth);
-    void     set_return_type(ast_kind type);
-    void     add_code(std::shared_ptr<ast_node> code_section);
-    void     add_local(std::string_view id, std::shared_ptr<ast_node> local);
+    bool          is_defined();
+    ast_attribute get_return_type();
+    void          print_declaration();
+    void          print_node(u32 nest_depth);
+    void          set_return_type(ast_attribute type);
+    void          add_code(std::shared_ptr<ast_node> code_section);
+    void add_local(std::string_view id, std::shared_ptr<ast_node> local);
     void add_parameters(std::vector<std::shared_ptr<ast_node>> &parameter_list);
 
   private:
@@ -79,7 +92,7 @@ class function_node : public ast_node {
     std::vector<std::shared_ptr<ast_node>>                          code;
     std::unordered_map<std::string_view, std::shared_ptr<ast_node>> locals;
     std::vector<std::shared_ptr<ast_node>>                          parameters;
-    ast_kind                                                        return_type;
+    ast_attribute                                                   return_type;
 };
 
 class function_call_node : ast_node {
@@ -98,7 +111,8 @@ class function_call_node : ast_node {
 };
 
 class ast : ast_node {
-    ast(std::string id);
+  public:
+    ast(std::string id, std::vector<token> tokens);
 
     void                      print_node(u32 nest_depth);
     std::shared_ptr<ast_node> get_node(std::string_view &id);
@@ -107,6 +121,10 @@ class ast : ast_node {
   private:
     std::string                            id;
     std::vector<std::shared_ptr<ast_node>> nodes;
+    std::vector<token>                     token_list;
     std::unordered_map<std::string_view, std::shared_ptr<ast_node>>
         module_nodes;
 };
+
+std::shared_ptr<ast_node> parse_module(std::string        &id,
+                                       std::vector<token> &token_list);
